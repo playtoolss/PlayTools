@@ -1387,11 +1387,19 @@
       </div>
 
       <div class="admin-section">
+        <h3>🚀 Экспорт для хостинга (Сохранить изменения навсегда)</h3>
+        <p style="color:var(--gray-500);font-size:0.9rem;margin-bottom:16px;">
+          Чтобы изменения из админки появились на сайте у <b>всех пользователей в интернете</b> (на хостинге), нажмите эту кнопку и замените ваш <code>index.html</code> на хостинге скачанным файлом:
+        </p>
+        <button class="btn-admin btn-admin-primary" onclick="exportCompiledHtml()">📥 Скачать готовый index.html для хостинга</button>
+      </div>
+
+      <div class="admin-section">
         <h3>💾 Данные и Резервные копии</h3>
         <p style="color:var(--gray-500);font-size:0.9rem;margin-bottom:16px;">Экспорт и импорт всех данных сайта в формате JSON</p>
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
-          <button class="btn-admin btn-admin-primary" onclick="exportData()">📤 Экспорт данных</button>
-          <button class="btn-admin btn-admin-secondary" onclick="document.getElementById('importFile').click()">📥 Импорт данных</button>
+          <button class="btn-admin btn-admin-secondary" onclick="exportData()">📤 Экспорт JSON</button>
+          <button class="btn-admin btn-admin-secondary" onclick="document.getElementById('importFile').click()">📥 Импорт JSON</button>
           <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
           <button class="btn-admin btn-admin-danger" onclick="resetAllData()">🗑 Сбросить всё к заводским</button>
         </div>
@@ -1949,6 +1957,22 @@ function saveSettings() {
   data.settings.infoText = document.getElementById('settingInfoText').value.trim();
   saveData();
   toast('Настройки сайта сохранены!', 'success');
+}
+
+// ===== Export HTML for Hosting =====
+function exportCompiledHtml() {
+  let currentDoc = document.documentElement.outerHTML;
+  
+  // Replace the DEFAULT_DATA object in HTML source with current data state
+  const dataString = 'const DEFAULT_DATA = ' + JSON.stringify(data, null, 2) + ';';
+  currentDoc = currentDoc.replace(/const DEFAULT_DATA = \{[\s\S]*?\};\n\nlet data;/, dataString + '\n\nlet data;');
+  
+  const blob = new Blob(['<!DOCTYPE html>\n' + currentDoc], { type: 'text/html;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'index.html';
+  a.click();
+  toast('Сгенерирован готовый index.html для хостинга!', 'success');
 }
 
 // ===== Export / Import =====

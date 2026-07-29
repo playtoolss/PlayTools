@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
-<head>
+<html lang="ru"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PlayTools</title>
@@ -1208,13 +1207,9 @@
     <nav id="mainNav">
       <div class="nav-dropdown">
         <a class="nav-btn" id="navHomeBtn" onclick="showHome()">Главная ▾</a>
-        <div class="dropdown-menu" id="navDropdownMenu">
-          <!-- Заполняется динамически -->
-        </div>
+        <div class="dropdown-menu" id="navDropdownMenu"><a onclick="showPage(1)">О проекте</a><a onclick="showPage(2)">Правила</a><a onclick="showPage(3)">Поддержка</a><a onclick="showPage(4)">FunHub</a></div>
       </div>
-      <div id="navLinks">
-        <!-- Динамические ссылки -->
-      </div>
+      <div id="navLinks"><a href="https://t.me/logovo_bespredela" target="_blank" onclick="handleNavClick(event, 'https://t.me/logovo_bespredela')">Сообщество</a><a href="#page4" onclick="handleNavClick(event, '#page4')">FunHub</a></div>
       <a href="https://t.me/logovo_bespredela" target="_blank" class="tg-nav-btn">✈️ Поддержка</a>
       <button class="search-btn" onclick="toggleSearch()" title="Поиск">🔍</button>
     </nav>
@@ -1222,9 +1217,92 @@
 </header>
 
 <!-- Main Content -->
-<main id="mainContent">
-  <!-- Заполняется динамически -->
-</main>
+<main id="mainContent" style="">
+    <div class="hero">
+      <div class="hero-badge"><span class="dot"></span> Онлайн</div>
+      <h1>Добро пожаловать в <span>PlayTools</span></h1>
+      <p>Ваша игровая платформа нового поколения. Игры, инструменты и дружелюбное сообщество — всё в одном месте.</p>
+      <div class="hero-actions">
+        <a class="btn btn-telegram" href="https://t.me/logovo_bespredela" target="_blank">✈️ Наша поддержка в TG</a>
+        <button class="btn btn-secondary" onclick="scrollToSection('cards-section')">🎮 Игры и Разделы</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="quick-links">
+        <a class="quick-link-btn" onclick="showSection('games')">🎮 Игры</a>
+        <a class="quick-link-btn secondary" onclick="showSection('video')">📺 Видео платформа</a>
+        <a class="quick-link-btn telegram" href="https://t.me/logovo_bespredela" target="_blank">✈️ Логово Беспредела</a>
+      </div>
+
+      <div class="info-box">
+        <span class="info-icon">💬</span>
+        <p>Если у вас возникли вопросы или нужна помощь, напишите нам напрямую в наш Telegram-канал <a href="https://t.me/logovo_bespredela" target="_blank">Логово Беспредела</a>. Мы всегда на связи!</p>
+      </div>
+    </div>
+
+    <div class="section" id="cards-section">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Разделы</div>
+          <div class="section-subtitle">Всё что нужно в одном месте</div>
+        </div>
+      </div>
+      <div class="cards-grid">
+        
+          <div class="card" onclick="window.open('https://drive.google.com/file/d/1-qZ1V7f71xUBUHiJMoJRoWYd0UPU3mMR/view?usp=drive_link','_blank')">
+            <div class="card-icon">📦</div>
+            <h3>FunHub</h3>
+            <p>Крутая игра от крутого чела. Только АПК</p>
+            <span class="card-tag">Новинка и круто</span>
+          </div>
+        
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Страницы</div>
+          <div class="section-subtitle">Полезная информация</div>
+        </div>
+      </div>
+      <div class="cards-grid">
+        
+          <div class="card" onclick="showPage(1)">
+            <div class="card-icon">📄</div>
+            <h3>О проекте</h3>
+            <p>PlayTools — это современная платформа для геймеров. Здесь вы найдёте полезные ут...</p>
+            <span class="card-tag">Страница</span>
+          </div>
+        
+          <div class="card" onclick="showPage(2)">
+            <div class="card-icon">📄</div>
+            <h3>Правила</h3>
+            <p>1. Уважайте других участников сообщества.
+2. Не публикуйте спам и вредоносные сс...</p>
+            <span class="card-tag">Страница</span>
+          </div>
+        
+          <div class="card" onclick="showPage(3)">
+            <div class="card-icon">📄</div>
+            <h3>Поддержка</h3>
+            <p>Наша официальная техподдержка доступна в Telegram:
+
+👉 https://t.me/logovo_bespr...</p>
+            <span class="card-tag">Страница</span>
+          </div>
+        
+          <div class="card" onclick="showPage(4)">
+            <div class="card-icon">📄</div>
+            <h3>FunHub</h3>
+            <p>...</p>
+            <span class="card-tag">Страница</span>
+          </div>
+        
+      </div>
+    </div>
+  </main>
 
 <!-- Footer -->
 <footer>
@@ -1244,7 +1322,7 @@
     <h2>Админ-панель</h2>
     <p>Введите пароль для доступа к управлению</p>
     <input type="password" id="adminPassword" placeholder="Пароль администратора..." onkeydown="if(event.key==='Enter')checkAdminPassword()">
-    <div class="error-msg" id="adminError">Неверный пароль</div>
+    <div class="error-msg" id="adminError" style="display: none;">Неверный пароль</div>
     <button class="btn btn-primary btn-block" onclick="checkAdminPassword()">Войти в панель</button>
     <br>
     <button class="btn btn-secondary" style="margin-top:10px;width:100%;" onclick="closeAdminLogin()">Отмена</button>
@@ -1252,7 +1330,7 @@
 </div>
 
 <!-- Admin Panel -->
-<div class="admin-panel" id="adminPanel">
+<div class="admin-panel active" id="adminPanel">
   <div class="admin-header">
     <h2>⚙️ Управление сайтом PlayTools</h2>
     <div style="display:flex;gap:10px;">
@@ -1261,17 +1339,22 @@
     </div>
   </div>
   <div class="admin-body">
-    <div class="stats-bar" id="adminStats"></div>
+    <div class="stats-bar" id="adminStats">
+    <div class="stat-card"><div class="stat-num">4</div><div class="stat-label">Страниц</div></div>
+    <div class="stat-card"><div class="stat-num">1</div><div class="stat-label">Карточек</div></div>
+    <div class="stat-card"><div class="stat-num">2</div><div class="stat-label">Ссылок Навигации</div></div>
+    <div class="stat-card"><div class="stat-num">TG</div><div class="stat-label">Поддержка Подключена</div></div>
+  </div>
 
     <div class="admin-tabs">
-      <button class="admin-tab active" onclick="switchAdminTab('pages')">📄 Страницы</button>
+      <button class="admin-tab" onclick="switchAdminTab('pages')">📄 Страницы</button>
       <button class="admin-tab" onclick="switchAdminTab('navlinks')">🔗 Навигация</button>
       <button class="admin-tab" onclick="switchAdminTab('cards')">🃏 Карточки</button>
-      <button class="admin-tab" onclick="switchAdminTab('settings')">⚙️ Настройки</button>
+      <button class="admin-tab active" onclick="switchAdminTab('settings')">⚙️ Настройки</button>
     </div>
 
     <!-- Pages Tab -->
-    <div class="admin-tab-content active" id="tab-pages">
+    <div class="admin-tab-content" id="tab-pages">
       <div class="admin-section">
         <h3>➕ Добавить страницу</h3>
         <div class="admin-field">
@@ -1286,7 +1369,39 @@
       </div>
       <div class="admin-section">
         <h3>📄 Все страницы</h3>
-        <div class="admin-item-list" id="adminPagesList"></div>
+        <div class="admin-item-list" id="adminPagesList">
+    <div class="admin-item-row">
+      <span>📄 О проекте</span>
+      <div class="item-actions">
+        <button class="btn-sm btn-sm-edit" onclick="editPage(1)">✏️ Изменить</button>
+        <button class="btn-sm btn-sm-danger" onclick="deletePage(1)">🗑 Удалить</button>
+      </div>
+    </div>
+  
+    <div class="admin-item-row">
+      <span>📄 Правила</span>
+      <div class="item-actions">
+        <button class="btn-sm btn-sm-edit" onclick="editPage(2)">✏️ Изменить</button>
+        <button class="btn-sm btn-sm-danger" onclick="deletePage(2)">🗑 Удалить</button>
+      </div>
+    </div>
+  
+    <div class="admin-item-row">
+      <span>📄 Поддержка</span>
+      <div class="item-actions">
+        <button class="btn-sm btn-sm-edit" onclick="editPage(3)">✏️ Изменить</button>
+        <button class="btn-sm btn-sm-danger" onclick="deletePage(3)">🗑 Удалить</button>
+      </div>
+    </div>
+  
+    <div class="admin-item-row">
+      <span>📄 FunHub</span>
+      <div class="item-actions">
+        <button class="btn-sm btn-sm-edit" onclick="editPage(4)">✏️ Изменить</button>
+        <button class="btn-sm btn-sm-danger" onclick="deletePage(4)">🗑 Удалить</button>
+      </div>
+    </div>
+  </div>
       </div>
     </div>
 
@@ -1308,7 +1423,23 @@
       </div>
       <div class="admin-section">
         <h3>🔗 Ссылки навигации</h3>
-        <div class="admin-item-list" id="adminNavLinksList"></div>
+        <div class="admin-item-list" id="adminNavLinksList">
+    <div class="admin-item-row">
+      <span>🔗 Сообщество → https://t.me/logovo_bespredela</span>
+      <div class="item-actions">
+        <button class="btn-sm btn-sm-edit" onclick="editNavLink(1)">✏️ Изменить</button>
+        <button class="btn-sm btn-sm-danger" onclick="deleteNavLink(1)">🗑 Удалить</button>
+      </div>
+    </div>
+  
+    <div class="admin-item-row">
+      <span>🔗 FunHub → #page4</span>
+      <div class="item-actions">
+        <button class="btn-sm btn-sm-edit" onclick="editNavLink(2)">✏️ Изменить</button>
+        <button class="btn-sm btn-sm-danger" onclick="deleteNavLink(2)">🗑 Удалить</button>
+      </div>
+    </div>
+  </div>
       </div>
     </div>
 
@@ -1344,12 +1475,20 @@
       </div>
       <div class="admin-section">
         <h3>🃏 Все карточки</h3>
-        <div class="admin-item-list" id="adminCardsList"></div>
+        <div class="admin-item-list" id="adminCardsList">
+    <div class="admin-item-row">
+      <span>📦 FunHub — [Новинка и круто]</span>
+      <div class="item-actions">
+        <button class="btn-sm btn-sm-edit" onclick="editCard(1)">✏️ Изменить</button>
+        <button class="btn-sm btn-sm-danger" onclick="deleteCard(1)">🗑 Удалить</button>
+      </div>
+    </div>
+  </div>
       </div>
     </div>
 
     <!-- Settings Tab -->
-    <div class="admin-tab-content" id="tab-settings">
+    <div class="admin-tab-content active" id="tab-settings">
       <div class="admin-section">
         <h3>🔑 Смена пароля админ-панели</h3>
         <div class="admin-row">
@@ -1424,36 +1563,96 @@
 <div class="search-modal" id="searchModal" onclick="if(event.target===this)toggleSearch()">
   <div class="search-modal-inner">
     <input type="text" id="searchInput" placeholder="Поиск по сайту..." oninput="doSearch()">
-    <div class="search-results" id="searchResults"></div>
+    <div class="search-results" id="searchResults">
+    <div class="search-result-item" onclick="searchActions[0]()">
+      <div class="sr-title">О проекте</div>
+      <div class="sr-type">Страница</div>
+    </div>
+  
+    <div class="search-result-item" onclick="searchActions[1]()">
+      <div class="sr-title">Поддержка</div>
+      <div class="sr-type">Страница</div>
+    </div>
+  
+    <div class="search-result-item" onclick="searchActions[2]()">
+      <div class="sr-title">Игровая библиотека</div>
+      <div class="sr-type">Карточка</div>
+    </div>
+  
+    <div class="search-result-item" onclick="searchActions[3]()">
+      <div class="sr-title">Видео платформа</div>
+      <div class="sr-type">Карточка</div>
+    </div>
+  
+    <div class="search-result-item" onclick="searchActions[4]()">
+      <div class="sr-title">Сообщество Telegram</div>
+      <div class="sr-type">Карточка</div>
+    </div>
+  
+    <div class="search-result-item" onclick="searchActions[5]()">
+      <div class="sr-title">Инструменты</div>
+      <div class="sr-type">Карточка</div>
+    </div>
+  </div>
   </div>
 </div>
 
 <!-- Toast -->
-<div class="toast" id="toast"></div>
+<div class="toast success" id="toast">Ссылка навигации добавлена!</div>
 
 <script>
 // ===== DATA STORE =====
 const DEFAULT_DATA = {
-  adminPass: 'priv123R',
-  settings: {
-    heroTitle: 'Добро пожаловать в <span>PlayTools</span>',
-    heroSub: 'Ваша игровая платформа нового поколения. Игры, инструменты и дружелюбное сообщество — всё в одном месте.',
-    tgSupportLink: 'https://t.me/logovo_bespredela',
-    infoText: 'Если у вас возникли вопросы или нужна помощь, напишите нам напрямую в наш Telegram-канал <a href="https://t.me/logovo_bespredela" target="_blank">Логово Беспредела</a>. Мы всегда на связи!'
+  "adminPass": "priv123R",
+  "settings": {
+    "heroTitle": "Добро пожаловать в <span>PlayTools</span>",
+    "heroSub": "Ваша игровая платформа нового поколения. Игры, инструменты и дружелюбное сообщество — всё в одном месте.",
+    "tgSupportLink": "https://t.me/logovo_bespredela",
+    "infoText": "Если у вас возникли вопросы или нужна помощь, напишите нам напрямую в наш Telegram-канал <a href=\"https://t.me/logovo_bespredela\" target=\"_blank\">Логово Беспредела</a>. Мы всегда на связи!"
   },
-  pages: [
-    { id: 1, title: 'О проекте', content: 'PlayTools — это современная платформа для геймеров. Здесь вы найдёте полезные утилиты, обзоры и активное сообщество.' },
-    { id: 2, title: 'Правила', content: '1. Уважайте других участников сообщества.\n2. Не публикуйте спам и вредоносные ссылки.\n3. По всем вопросам обращайтесь в поддержку Telegram: https://t.me/logovo_bespredela' },
-    { id: 3, title: 'Поддержка', content: 'Наша официальная техподдержка доступна в Telegram:\n\n👉 https://t.me/logovo_bespredela (Логово Беспредела)' }
+  "pages": [
+    {
+      "id": 1,
+      "title": "О проекте",
+      "content": "PlayTools — это современная платформа для геймеров. Здесь вы найдёте полезные утилиты, обзоры и активное сообщество."
+    },
+    {
+      "id": 2,
+      "title": "Правила",
+      "content": "1. Уважайте других участников сообщества.\n2. Не публикуйте спам и вредоносные ссылки.\n3. По всем вопросам обращайтесь в поддержку Telegram: https://t.me/logovo_bespredela"
+    },
+    {
+      "id": 3,
+      "title": "Поддержка",
+      "content": "Наша официальная техподдержка доступна в Telegram:\n\n👉 https://t.me/logovo_bespredela (Логово Беспредела)"
+    },
+    {
+      "id": 4,
+      "title": "FunHub",
+      "content": ""
+    }
   ],
-  navLinks: [
-    { id: 1, text: 'Сообщество', url: 'https://t.me/logovo_bespredela' }
+  "navLinks": [
+    {
+      "id": 1,
+      "text": "Сообщество",
+      "url": "https://t.me/logovo_bespredela"
+    },
+    {
+      "id": 2,
+      "text": "FunHub",
+      "url": "#page4"
+    }
   ],
-  cards: [
-    { id: 1, title: 'Игровая библиотека', icon: '🎮', desc: 'Коллекция лучших игр и обновлений. Находи и играй.', tag: 'Популярное', link: '' },
-    { id: 2, title: 'Видео платформа', icon: '📺', desc: 'Смотри геймплей, обзоры и стримы от нашего сообщества.', tag: 'Новинка', link: '' },
-    { id: 3, title: 'Сообщество Telegram', icon: '✈️', desc: 'Присоединяйся к нам в Telegram "Логово Беспредела".', tag: 'Общение', link: 'https://t.me/logovo_bespredela' },
-    { id: 4, title: 'Инструменты', icon: '🛠', desc: 'Полезные утилиты для модификации и настройки игр.', tag: 'Beta', link: '' }
+  "cards": [
+    {
+      "id": 1,
+      "title": "FunHub",
+      "icon": "📦",
+      "desc": "Крутая игра от крутого чела. Только АПК",
+      "tag": "Новинка и круто",
+      "link": "https://drive.google.com/file/d/1-qZ1V7f71xUBUHiJMoJRoWYd0UPU3mMR/view?usp=drive_link"
+    }
   ]
 };
 
@@ -2036,5 +2235,6 @@ document.addEventListener('keydown', e => {
 loadData();
 render();
 </script>
-</body>
-</html>
+
+
+</body></html>

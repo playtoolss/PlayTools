@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"><title>Fruit Slicer - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #451a03; color: #fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { max-width: 850px; width:100%; background: #78350f; border-radius: 20px; padding: 25px; border: 1px solid #f59e0b; box-shadow: 0 0 30px rgba(245,158,11,0.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#fde68a; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(253,230,138,0.1); border-radius:999px; margin-bottom:15px; }
+.game-container { position:relative; width:100%; height:450px; margin:20px 0; background:#291003; border-radius:12px; overflow:hidden; border:2px solid #f59e0b; cursor:crosshair; }
+canvas { width:100%; height:100%; display:block; }
+.hud { position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-weight:800; font-size:1.3rem; color:#fde68a; pointer-events:none; z-index:10; }
+.overlay { position:absolute; inset:0; background:rgba(69,26,3,0.85); backdrop-filter:blur(5px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; }
+.btn { background: linear-gradient(135deg, #d97706, #f59e0b); color:#fff; border:none; padding:12px 30px; font-weight:800; font-size:1.1rem; border-radius:999px; cursor:pointer; margin-top:15px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>🍉 Fruit Slicer</h1>
+  <p>Ниндзя-разрезатель фруктов! Води мышкой по летающим фруктам!</p>
+  <div class="game-container">
+    <div class="hud">
+      <div id="score">Счёт: 0</div>
+      <div id="lives">❤️ 3</div>
+    </div>
+    <div id="overlay" class="overlay">
+      <h2 id="ovTitle">Fruit Slicer</h2>
+      <p id="ovSub">Режь фрукты и избегай бомб 💣!</p>
+      <button class="btn" id="startBtn">Резать</button>
+    </div>
+    <canvas id="canvas" width="800" height="450"></canvas>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const livesEl = document.getElementById('lives');
+const overlay = document.getElementById('overlay');
+const startBtn = document.getElementById('startBtn');
+
+let state = 'START', score = 0, lives = 3;
+let fruits = [], trail = [];
+
+const fruitTypes = ['🍎','🍉','🍌','🍊','🍓','💣'];
+
+canvas.addEventListener('mousemove', e => {
+  let r = canvas.getBoundingClientRect();
+  let mx = e.clientX - r.left, my = e.clientY - r.top;
+  trail.push({ x: mx, y: my, life: 10 });
+
+  if (state === 'PLAYING') {
+    fruits.forEach((f, i) => {
+      if (!f.sliced && Math.hypot(f.x - mx, f.y - my) < 30) {
+        f.sliced = true;
+        if (f.type === '💣') {
+          lives--; livesEl.textContent = `❤️ ${lives}`;
+          if (lives <= 0) gameOver();
+        } else {
+          score += 10; scoreEl.textContent = `Счёт: ${score}`;
+        }
+      }
+    });
+  }
+});
+
+startBtn.addEventListener('click', start);
+
+function start() {
+  score = 0; lives = 3; fruits = []; trail = [];
+  scoreEl.textContent = `Счёт: 0`; livesEl.textContent = `❤️ 3`;
+  state = 'PLAYING'; overlay.style.display = 'none';
+}
+
+function gameOver() {
+  state = 'GAMEOVER';
+  document.getElementById('ovTitle').textContent = '💣 БОМБА ВЗОРВАЛАСЬ!';
+  document.getElementById('ovSub').textContent = `Итоговый счёт: ${score}`;
+  startBtn.textContent = 'Ещё раз'; overlay.style.display = 'flex';
+}
+
+function update() {
+  if (state !== 'PLAYING') return;
+
+  if (Math.random() < 0.03) {
+    let type = fruitTypes[Math.floor(Math.random() * fruitTypes.length)];
+    fruits.push({
+      x: 100 + Math.random()*600, y: 460,
+      vx: (Math.random()-0.5)*4, vy: -12 - Math.random()*4,
+      gravity: 0.3, type: type, sliced: false
+    });
+  }
+
+  for (let i = fruits.length - 1; i >= 0; i--) {
+    let f = fruits[i]; f.vy += f.gravity; f.x += f.vx; f.y += f.vy;
+    if (f.y > 480) fruits.splice(i, 1);
+  }
+
+  for (let i = trail.length - 1; i >= 0; i--) {
+    trail[i].life--;
+    if (trail[i].life <= 0) trail.splice(i, 1);
+  }
+}
+
+function draw() {
+  ctx.fillStyle = '#291003'; ctx.fillRect(0,0,800,450);
+
+  // Fruits
+  ctx.font = '32px serif'; ctx.textAlign = 'center';
+  fruits.forEach(f => {
+    if (!f.sliced) ctx.fillText(f.type, f.x, f.y);
+  });
+
+  // Trail
+  if (trail.length > 1) {
+    ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(trail[0].x, trail[0].y);
+    for (let i = 1; i < trail.length; i++) ctx.lineTo(trail[i].x, trail[i].y);
+    ctx.stroke();
+  }
+}
+
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+loop();
+</script>
+</body>
+</html>

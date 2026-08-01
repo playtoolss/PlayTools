@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cyber Runner - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #090d16; color: #fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { max-width: 850px; width:100%; background: #111827; border-radius: 20px; padding: 25px; border: 1px solid #00f0ff; box-shadow: 0 0 30px rgba(0,240,255,0.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#00f0ff; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(0,240,255,0.1); border-radius:999px; margin-bottom:15px; }
+.game-container { position:relative; width:100%; height:400px; margin:20px 0; background:#050811; border-radius:12px; overflow:hidden; border:2px solid #00f0ff; }
+canvas { width:100%; height:100%; display:block; }
+.hud { position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-weight:800; font-size:1.3rem; color:#00f0ff; pointer-events:none; z-index:10; }
+.overlay { position:absolute; inset:0; background:rgba(9,13,22,0.85); backdrop-filter:blur(5px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; }
+.btn { background: linear-gradient(135deg, #00f0ff, #7000ff); color:#fff; border:none; padding:12px 30px; font-weight:800; font-size:1.1rem; border-radius:999px; cursor:pointer; margin-top:15px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>⚡ Cyber Runner</h1>
+  <p>Неоновый раннер. Прыгай через препятствия (Пробел / Клик)!</p>
+  <div class="game-container">
+    <div class="hud">
+      <div id="score">Счёт: 0</div>
+      <div id="highScore">Рекорд: 0</div>
+    </div>
+    <div id="overlay" class="overlay">
+      <h2 id="ovTitle">Cyber Runner</h2>
+      <p id="ovSub">Нажми Пробел или Клик для прыжка!</p>
+      <button class="btn" id="startBtn">Старт</button>
+    </div>
+    <canvas id="canvas" width="800" height="400"></canvas>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const highScoreEl = document.getElementById('highScore');
+const overlay = document.getElementById('overlay');
+const ovTitle = document.getElementById('ovTitle');
+const ovSub = document.getElementById('ovSub');
+const startBtn = document.getElementById('startBtn');
+
+let state = 'START';
+let score = 0, highScore = localStorage.getItem('cyber_runner_hi') || 0;
+highScoreEl.textContent = `Рекорд: ${highScore}`;
+
+let runner = { x: 80, y: 280, w: 30, h: 40, vy: 0, gravity: 0.7, jump: -13, grounded: false };
+let obstacles = [], frame = 0;
+
+function reset() {
+  runner.y = 280; runner.vy = 0; obstacles = []; score = 0; frame = 0;
+  scoreEl.textContent = `Счёт: 0`;
+}
+
+function jump() {
+  if (state === 'PLAYING' && runner.grounded) {
+    runner.vy = runner.jump; runner.grounded = false;
+  }
+}
+
+window.addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); state==='PLAYING'?jump():start(); } });
+canvas.addEventListener('mousedown', () => { state==='PLAYING'?jump():start(); });
+startBtn.addEventListener('click', start);
+
+function start() { reset(); state = 'PLAYING'; overlay.style.display = 'none'; }
+
+function gameOver() {
+  state = 'GAMEOVER';
+  if (score > highScore) { highScore = score; localStorage.setItem('cyber_runner_hi', highScore); highScoreEl.textContent = `Рекорд: ${highScore}`; }
+  ovTitle.textContent = 'Игра Окончена!'; ovSub.textContent = `Твой счёт: ${score}`;
+  startBtn.textContent = 'Ещё раз'; overlay.style.display = 'flex';
+}
+
+function update() {
+  if (state !== 'PLAYING') return;
+  frame++;
+  runner.vy += runner.gravity;
+  runner.y += runner.vy;
+  if (runner.y >= 280) { runner.y = 280; runner.vy = 0; runner.grounded = true; }
+
+  if (frame % 80 === 0) {
+    obstacles.push({ x: 800, w: 25 + Math.random()*15, h: 30 + Math.random()*30 });
+  }
+
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    let o = obstacles[i]; o.x -= 6 + Math.floor(score/50);
+    if (runner.x < o.x + o.w && runner.x + runner.w > o.x && runner.y + runner.h > 320 - o.h) {
+      gameOver();
+    }
+    if (o.x + o.w < 0) { obstacles.splice(i, 1); score += 10; scoreEl.textContent = `Счёт: ${score}`; }
+  }
+}
+
+function draw() {
+  ctx.fillStyle = '#050811'; ctx.fillRect(0,0,800,400);
+  ctx.fillStyle = '#00f0ff'; ctx.fillRect(0, 320, 800, 4);
+
+  // Runner
+  ctx.fillStyle = '#7000ff'; ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 10;
+  ctx.fillRect(runner.x, runner.y, runner.w, runner.h);
+  ctx.shadowBlur = 0;
+
+  // Obstacles
+  ctx.fillStyle = '#ff0055';
+  obstacles.forEach(o => { ctx.fillRect(o.x, 320 - o.h, o.w, o.h); });
+}
+
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+loop();
+</script>
+</body>
+</html>

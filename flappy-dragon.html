@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"><title>Flappy Dragon - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #581c87; color: #fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { max-width: 850px; width:100%; background: #3b0764; border-radius: 20px; padding: 25px; border: 1px solid #c084fc; box-shadow: 0 0 30px rgba(192,132,252,0.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#e9d5ff; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(233,213,255,0.1); border-radius:999px; margin-bottom:15px; }
+.game-container { position:relative; width:100%; height:450px; margin:20px 0; background:#2e1065; border-radius:12px; overflow:hidden; border:2px solid #c084fc; }
+canvas { width:100%; height:100%; display:block; }
+.hud { position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-weight:800; font-size:1.3rem; color:#e9d5ff; pointer-events:none; z-index:10; }
+.overlay { position:absolute; inset:0; background:rgba(59,7,100,0.85); backdrop-filter:blur(5px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; }
+.btn { background: linear-gradient(135deg, #a855f7, #c084fc); color:#fff; border:none; padding:12px 30px; font-weight:800; font-size:1.1rem; border-radius:999px; cursor:pointer; margin-top:15px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>🐲 Flappy Dragon</h1>
+  <p>Драконий полет! Маши крыльями (Пробел / Клик / Тап)!</p>
+  <div class="game-container">
+    <div class="hud">
+      <div id="score">Счёт: 0</div>
+      <div id="highScore">Рекорд: 0</div>
+    </div>
+    <div id="overlay" class="overlay">
+      <h2 id="ovTitle">Flappy Dragon</h2>
+      <p id="ovSub">Пролетай между кристальными колоннами!</p>
+      <button class="btn" id="startBtn">Полетели</button>
+    </div>
+    <canvas id="canvas" width="800" height="450"></canvas>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const highScoreEl = document.getElementById('highScore');
+const overlay = document.getElementById('overlay');
+const startBtn = document.getElementById('startBtn');
+
+let state = 'START', score = 0, highScore = localStorage.getItem('dragon_hi') || 0;
+highScoreEl.textContent = `Рекорд: ${highScore}`;
+
+let dragon = { x: 100, y: 200, vy: 0, gravity: 0.4, jump: -7.5, r: 16 };
+let pipes = [], frame = 0;
+
+function flap() {
+  if (state === 'PLAYING') dragon.vy = dragon.jump;
+}
+
+window.addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); state==='PLAYING'?flap():start(); } });
+canvas.addEventListener('mousedown', () => { state==='PLAYING'?flap():start(); });
+startBtn.addEventListener('click', start);
+
+function start() {
+  dragon.y = 200; dragon.vy = 0; pipes = []; score = 0; frame = 0;
+  scoreEl.textContent = `Счёт: 0`; state = 'PLAYING'; overlay.style.display = 'none';
+}
+
+function gameOver() {
+  state = 'GAMEOVER';
+  if (score > highScore) { highScore = score; localStorage.setItem('dragon_hi', highScore); highScoreEl.textContent = `Рекорд: ${highScore}`; }
+  document.getElementById('ovTitle').textContent = 'Дракон Врезался!';
+  document.getElementById('ovSub').textContent = `Твой счёт: ${score}`;
+  startBtn.textContent = 'Ещё раз'; overlay.style.display = 'flex';
+}
+
+function update() {
+  if (state !== 'PLAYING') return;
+  frame++;
+  dragon.vy += dragon.gravity; dragon.y += dragon.vy;
+
+  if (dragon.y > 430 || dragon.y < 0) gameOver();
+
+  if (frame % 90 === 0) {
+    let gap = 130, top = Math.random() * 200 + 40;
+    pipes.push({ x: 800, top: top, bottom: 450 - top - gap, passed: false });
+  }
+
+  for (let i = pipes.length - 1; i >= 0; i--) {
+    let p = pipes[i]; p.x -= 3;
+    if (dragon.x + dragon.r > p.x && dragon.x - dragon.r < p.x + 50 && (dragon.y - dragon.r < p.top || dragon.y + dragon.r > 450 - p.bottom)) {
+      gameOver();
+    }
+    if (!p.passed && p.x + 50 < dragon.x) { p.passed = true; score += 10; scoreEl.textContent = `Счёт: ${score}`; }
+    if (p.x < -60) pipes.splice(i, 1);
+  }
+}
+
+function draw() {
+  ctx.fillStyle = '#2e1065'; ctx.fillRect(0,0,800,450);
+
+  // Dragon
+  ctx.fillStyle = '#c084fc'; ctx.beginPath(); ctx.arc(dragon.x, dragon.y, dragon.r, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.fillRect(dragon.x + 6, dragon.y - 6, 6, 6);
+
+  // Pipes
+  ctx.fillStyle = '#a855f7';
+  pipes.forEach(p => {
+    ctx.fillRect(p.x, 0, 50, p.top);
+    ctx.fillRect(p.x, 450 - p.bottom, 50, p.bottom);
+  });
+}
+
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+loop();
+</script>
+</body>
+</html>

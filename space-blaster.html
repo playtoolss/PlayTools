@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"><title>Space Blaster - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #05050f; color: #fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { max-width: 850px; width:100%; background: #0d0d21; border-radius: 20px; padding: 25px; border: 1px solid #e11d48; box-shadow: 0 0 30px rgba(225,29,72,0.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#f43f5e; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(244,63,94,0.1); border-radius:999px; margin-bottom:15px; }
+.game-container { position:relative; width:100%; height:450px; margin:20px 0; background:#020208; border-radius:12px; overflow:hidden; border:2px solid #e11d48; }
+canvas { width:100%; height:100%; display:block; }
+.hud { position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-weight:800; font-size:1.3rem; color:#f43f5e; pointer-events:none; z-index:10; }
+.overlay { position:absolute; inset:0; background:rgba(5,5,15,0.85); backdrop-filter:blur(5px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; }
+.btn { background: linear-gradient(135deg, #f43f5e, #fb7185); color:#fff; border:none; padding:12px 30px; font-weight:800; font-size:1.1rem; border-radius:999px; cursor:pointer; margin-top:15px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>🚀 Space Blaster</h1>
+  <p>Космический шутер! Управление: Стрелки / Мышь + Клик / Пробел для стрельбы!</p>
+  <div class="game-container">
+    <div class="hud">
+      <div id="score">Счёт: 0</div>
+      <div id="lives">❤️ 3</div>
+    </div>
+    <div id="overlay" class="overlay">
+      <h2 id="ovTitle">Space Blaster</h2>
+      <p id="ovSub">Уничтожай астероиды и вражеские корабли!</p>
+      <button class="btn" id="startBtn">Старт</button>
+    </div>
+    <canvas id="canvas" width="800" height="450"></canvas>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const livesEl = document.getElementById('lives');
+const overlay = document.getElementById('overlay');
+const startBtn = document.getElementById('startBtn');
+
+let state = 'START', score = 0, lives = 3;
+let ship = { x: 400, y: 380, w: 30, h: 30, speed: 6 };
+let bullets = [], enemies = [], keys = {};
+
+window.addEventListener('keydown', e => { keys[e.code] = true; if(e.code==='Space') shoot(); });
+window.addEventListener('keyup', e => { keys[e.code] = false; });
+canvas.addEventListener('mousemove', e => {
+  let r = canvas.getBoundingClientRect();
+  ship.x = e.clientX - r.left;
+});
+canvas.addEventListener('click', shoot);
+startBtn.addEventListener('click', start);
+
+function shoot() {
+  if (state === 'PLAYING') bullets.push({ x: ship.x, y: ship.y - 15, r: 4 });
+}
+
+function start() {
+  score = 0; lives = 3; bullets = []; enemies = []; ship.x = 400;
+  scoreEl.textContent = `Счёт: 0`; livesEl.textContent = `❤️ 3`;
+  state = 'PLAYING'; overlay.style.display = 'none';
+}
+
+function gameOver() {
+  state = 'GAMEOVER';
+  document.getElementById('ovTitle').textContent = 'Корабль Уничтожен!';
+  document.getElementById('ovSub').textContent = `Счёт: ${score}`;
+  startBtn.textContent = 'Ещё раз'; overlay.style.display = 'flex';
+}
+
+function update() {
+  if (state !== 'PLAYING') return;
+  if (keys['ArrowLeft'] || keys['KeyA']) ship.x -= ship.speed;
+  if (keys['ArrowRight'] || keys['KeyD']) ship.x += ship.speed;
+  ship.x = Math.max(20, Math.min(780, ship.x));
+
+  if (Math.random() < 0.04) {
+    enemies.push({ x: 30 + Math.random()*740, y: -20, r: 15 + Math.random()*15, vy: 2 + Math.random()*2 });
+  }
+
+  bullets.forEach((b, bi) => {
+    b.y -= 8;
+    if(b.y < 0) bullets.splice(bi, 1);
+  });
+
+  for (let ei = enemies.length - 1; ei >= 0; ei--) {
+    let e = enemies[ei]; e.y += e.vy;
+
+    // Hit ship
+    if (Math.hypot(ship.x - e.x, ship.y - e.y) < e.r + 15) {
+      enemies.splice(ei, 1); lives--; livesEl.textContent = `❤️ ${lives}`;
+      if (lives <= 0) gameOver();
+      continue;
+    }
+
+    // Hit bullet
+    bullets.forEach((b, bi) => {
+      if (Math.hypot(b.x - e.x, b.y - e.y) < e.r + b.r) {
+        enemies.splice(ei, 1); bullets.splice(bi, 1);
+        score += 20; scoreEl.textContent = `Счёт: ${score}`;
+      }
+    });
+
+    if (e.y > 470) enemies.splice(ei, 1);
+  }
+}
+
+function draw() {
+  ctx.fillStyle = '#020208'; ctx.fillRect(0,0,800,450);
+
+  // Ship
+  ctx.fillStyle = '#f43f5e'; ctx.beginPath();
+  ctx.moveTo(ship.x, ship.y - 15); ctx.lineTo(ship.x - 15, ship.y + 15); ctx.lineTo(ship.x + 15, ship.y + 15);
+  ctx.fill();
+
+  // Bullets
+  ctx.fillStyle = '#fbbf24';
+  bullets.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2); ctx.fill(); });
+
+  // Enemies
+  ctx.fillStyle = '#a855f7';
+  enemies.forEach(e => { ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI*2); ctx.fill(); });
+}
+
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+loop();
+</script>
+</body>
+</html>

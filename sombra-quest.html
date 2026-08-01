@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<title>Sombra Quest - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --purple: #7c3aed;
+  --purple-gradient: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%);
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-500: #64748b;
+  --gray-700: #334155;
+  --gray-900: #0f172a;
+  --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
+  --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.12);
+}
+
+body {
+  font-family: var(--font);
+  background: linear-gradient(180deg, #1e1b4b 0%, #312e81 30%, #4c1d95 60%, #581c87 100%);
+  color: #ffffff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 900px;
+  width: 100%;
+  background: rgba(30, 27, 75, 0.85);
+  backdrop-filter: blur(20px);
+  border-radius: var(--radius-xl);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  box-shadow: var(--shadow-lg), 0 0 60px rgba(124, 58, 237, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #c084fc;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: rgba(124, 58, 237, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  transition: all 0.2s;
+  margin-bottom: 1.5rem;
+}
+
+.back-btn:hover {
+  background: rgba(124, 58, 237, 0.3);
+  transform: translateX(-3px);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+}
+
+.game-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.game-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.6));
+}
+
+.game-title {
+  font-size: clamp(2rem, 5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: var(--purple-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+  filter: drop-shadow(0 2px 10px rgba(168, 85, 247, 0.5));
+}
+
+.game-desc {
+  font-size: 1rem;
+  color: #d8b4fe;
+}
+
+.game-container {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  height: 520px;
+  margin: 1.5rem auto;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(168, 85, 247, 0.3);
+  background: #0f0a1f;
+  border: 2px solid rgba(168, 85, 247, 0.4);
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hud {
+  position: absolute;
+  top: 15px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: #e9d5ff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  z-index: 10;
+}
+
+.overlay-screen {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 10, 31, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  z-index: 20;
+  text-align: center;
+  padding: 20px;
+}
+
+.overlay-screen h2 {
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+  color: #c084fc;
+  text-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
+}
+
+.overlay-screen p {
+  font-size: 1.1rem;
+  color: #e9d5ff;
+  margin-bottom: 20px;
+  max-width: 500px;
+}
+
+.start-btn {
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
+  transition: all 0.2s ease;
+}
+
+.start-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 35px rgba(168, 85, 247, 0.8);
+}
+
+.game-info {
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.4), rgba(76, 29, 149, 0.3));
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.game-info h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #f3e8ff;
+  margin-bottom: 0.5rem;
+}
+
+.game-info ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.game-info li {
+  padding: 0.3rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+  color: #e9d5ff;
+}
+
+.game-info li:before {
+  content: '🔮';
+  position: absolute;
+  left: 0;
+  font-size: 0.9rem;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  
+  <div class="game-header">
+    <div class="game-icon">🎭</div>
+    <h1 class="game-title">Sombra Quest</h1>
+    <p class="game-desc">Исследуй темный лабиринт, собирай магические кристаллы и сбеги от теневых монстров!</p>
+  </div>
+
+  <div class="game-container">
+    <div class="hud">
+      <div id="gemsDisplay">💎 Кристаллы: 0 / 5</div>
+      <div id="levelDisplay">Уровень: 1</div>
+      <div id="livesDisplay">❤️ 3</div>
+    </div>
+    
+    <div id="overlay" class="overlay-screen">
+      <h2 id="overlayTitle">Sombra Quest</h2>
+      <p id="overlaySub">Используй стрелки или WASD для перемещения. Собери все 5 кристаллов и найди портал!</p>
+      <button id="startBtn" class="start-btn">Начать Квест</button>
+    </div>
+
+    <canvas id="gameCanvas" width="800" height="520"></canvas>
+  </div>
+
+  <div class="game-info">
+    <h2>🎮 Управление и Правила</h2>
+    <ul>
+      <li><strong>Стрелки / WASD</strong> — Перемещение героя по лабиринту</li>
+      <li>Собери все <strong>5 фиолетовых кристаллов 💎</strong> на уровне</li>
+      <li>Найди открывшийся <strong>портал 🌀</strong> для перехода на следующий уровень</li>
+      <li>Остерегайся блуждающих <strong>теневых призраков 👻</strong>!</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const gemsDisplay = document.getElementById('gemsDisplay');
+const levelDisplay = document.getElementById('levelDisplay');
+const livesDisplay = document.getElementById('livesDisplay');
+const overlay = document.getElementById('overlay');
+const overlayTitle = document.getElementById('overlayTitle');
+const overlaySub = document.getElementById('overlaySub');
+const startBtn = document.getElementById('startBtn');
+
+const GRID_SIZE = 40;
+const COLS = 20;
+const ROWS = 13;
+
+let gameState = 'START'; // START, PLAYING, WIN, GAMEOVER
+let level = 1;
+let lives = 3;
+let gemsCollected = 0;
+let totalGems = 5;
+
+let player = { x: 1, y: 1, px: 40, py: 40, size: 28, speed: 4, targetX: 1, targetY: 1 };
+let keys = {};
+let grid = [];
+let gems = [];
+let enemies = [];
+let portal = { x: 18, y: 11, active: false };
+
+// Простая генерация лабиринта
+function generateLevel() {
+  grid = [];
+  for(let r=0; r<ROWS; r++) {
+    let row = [];
+    for(let c=0; c<COLS; c++) {
+      // Границы и внутренние стены
+      if (r === 0 || r === ROWS-1 || c === 0 || c === COLS-1) {
+        row.push(1); // Стена
+      } else if (r % 2 === 0 && c % 2 === 0 && Math.random() > 0.3) {
+        row.push(1);
+      } else {
+        row.push(0); // Путь
+      }
+    }
+    grid.push(row);
+  }
+
+  // Очищаем стартовую и финишную зоны
+  grid[1][1] = 0; grid[1][2] = 0; grid[2][1] = 0;
+  grid[ROWS-2][COLS-2] = 0; grid[ROWS-2][COLS-3] = 0; grid[ROWS-3][COLS-2] = 0;
+
+  // Игрок
+  player.x = 1;
+  player.y = 1;
+  player.px = 1 * GRID_SIZE + (GRID_SIZE - player.size)/2;
+  player.py = 1 * GRID_SIZE + (GRID_SIZE - player.size)/2;
+
+  // Кристаллы
+  gems = [];
+  gemsCollected = 0;
+  while(gems.length < totalGems) {
+    let rx = Math.floor(Math.random() * (COLS - 2)) + 1;
+    let ry = Math.floor(Math.random() * (ROWS - 2)) + 1;
+    if (grid[ry][rx] === 0 && !(rx === 1 && ry === 1) && !gems.some(g => g.x === rx && g.y === ry)) {
+      gems.push({ x: rx, y: ry, collected: false });
+    }
+  }
+
+  // Враги (Призраки)
+  enemies = [];
+  let enemyCount = 2 + level;
+  for(let i=0; i<enemyCount; i++) {
+    let rx = Math.floor(Math.random() * (COLS - 4)) + 3;
+    let ry = Math.floor(Math.random() * (ROWS - 4)) + 3;
+    if (grid[ry][rx] === 0) {
+      enemies.push({
+        x: rx, y: ry,
+        px: rx * GRID_SIZE + 6,
+        py: ry * GRID_SIZE + 6,
+        dir: Math.floor(Math.random() * 4),
+        speed: 1.5 + level * 0.3
+      });
+    }
+  }
+
+  portal.x = COLS - 2;
+  portal.y = ROWS - 2;
+  portal.active = false;
+
+  updateHUD();
+}
+
+function updateHUD() {
+  gemsDisplay.textContent = `💎 Кристаллы: ${gemsCollected} / ${totalGems}`;
+  levelDisplay.textContent = `Уровень: ${level}`;
+  livesDisplay.textContent = `❤️ ${lives}`;
+}
+
+window.addEventListener('keydown', (e) => {
+  keys[e.code] = true;
+});
+
+window.addEventListener('keyup', (e) => {
+  keys[e.code] = false;
+});
+
+startBtn.addEventListener('click', () => {
+  if (gameState === 'GAMEOVER' || gameState === 'WIN') {
+    level = 1;
+    lives = 3;
+  }
+  generateLevel();
+  gameState = 'PLAYING';
+  overlay.style.display = 'none';
+});
+
+function movePlayer() {
+  let dx = 0;
+  let dy = 0;
+
+  if (keys['ArrowUp'] || keys['KeyW']) dy = -player.speed;
+  if (keys['ArrowDown'] || keys['KeyS']) dy = player.speed;
+  if (keys['ArrowLeft'] || keys['KeyA']) dx = -player.speed;
+  if (keys['ArrowRight'] || keys['KeyD']) dx = player.speed;
+
+  let newPx = player.px + dx;
+  let newPy = player.py + dy;
+
+  // Проверка коллизий со стенами
+  let margin = 4;
+  let leftTile = Math.floor((newPx + margin) / GRID_SIZE);
+  let rightTile = Math.floor((newPx + player.size - margin) / GRID_SIZE);
+  let topTile = Math.floor((newPy + margin) / GRID_SIZE);
+  let bottomTile = Math.floor((newPy + player.size - margin) / GRID_SIZE);
+
+  if (
+    grid[topTile][leftTile] === 0 &&
+    grid[topTile][rightTile] === 0 &&
+    grid[bottomTile][leftTile] === 0 &&
+    grid[bottomTile][rightTile] === 0
+  ) {
+    player.px = newPx;
+    player.py = newPy;
+  }
+
+  player.x = Math.floor((player.px + player.size/2) / GRID_SIZE);
+  player.y = Math.floor((player.py + player.size/2) / GRID_SIZE);
+
+  // Сбор кристаллов
+  gems.forEach(g => {
+    if (!g.collected && g.x === player.x && g.y === player.y) {
+      g.collected = true;
+      gemsCollected++;
+      if (gemsCollected >= totalGems) {
+        portal.active = true;
+      }
+      updateHUD();
+    }
+  });
+
+  // Проход в портал
+  if (portal.active && player.x === portal.x && player.y === portal.y) {
+    level++;
+    if (level > 5) {
+      gameState = 'WIN';
+      overlayTitle.textContent = '🎉 Победа! Ты Прошел Квест!';
+      overlaySub.textContent = 'Ты выбрался из всех уровней теневого лабиринта!';
+      startBtn.textContent = 'Играть Снова';
+      overlay.style.display = 'flex';
+    } else {
+      generateLevel();
+    }
+  }
+}
+
+function moveEnemies() {
+  const dirs = [{x:0, y:-1}, {x:1, y:0}, {x:0, y:1}, {x:-1, y:0}];
+
+  enemies.forEach(e => {
+    let d = dirs[e.dir];
+    let nextPx = e.px + d.x * e.speed;
+    let nextPy = e.py + d.y * e.speed;
+
+    let margin = 4;
+    let leftTile = Math.floor((nextPx + margin) / GRID_SIZE);
+    let rightTile = Math.floor((nextPx + 28 - margin) / GRID_SIZE);
+    let topTile = Math.floor((nextPy + margin) / GRID_SIZE);
+    let bottomTile = Math.floor((nextPy + 28 - margin) / GRID_SIZE);
+
+    if (
+      grid[topTile] && grid[topTile][leftTile] === 0 &&
+      grid[topTile][rightTile] === 0 &&
+      grid[bottomTile][leftTile] === 0 &&
+      grid[bottomTile][rightTile] === 0
+    ) {
+      e.px = nextPx;
+      e.py = nextPy;
+    } else {
+      // Смена направления
+      e.dir = Math.floor(Math.random() * 4);
+    }
+
+    // Коллизия с игроком
+    let dist = Math.hypot((player.px + player.size/2) - (e.px + 14), (player.py + player.size/2) - (e.py + 14));
+    if (dist < 24) {
+      lives--;
+      updateHUD();
+      if (lives <= 0) {
+        gameState = 'GAMEOVER';
+        overlayTitle.textContent = '💀 Поражение!';
+        overlaySub.textContent = `Теневой призрак поймал тебя на уровне ${level}!`;
+        startBtn.textContent = 'Попробовать Снова';
+        overlay.style.display = 'flex';
+      } else {
+        // Сброс позиции игрока
+        player.px = 1 * GRID_SIZE + (GRID_SIZE - player.size)/2;
+        player.py = 1 * GRID_SIZE + (GRID_SIZE - player.size)/2;
+      }
+    }
+  });
+}
+
+function update() {
+  if (gameState !== 'PLAYING') return;
+  movePlayer();
+  moveEnemies();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Отрисовка карты
+  for(let r=0; r<ROWS; r++) {
+    for(let c=0; c<COLS; c++) {
+      let x = c * GRID_SIZE;
+      let y = r * GRID_SIZE;
+
+      if (grid[r][c] === 1) {
+        // Стена
+        ctx.fillStyle = '#312e81';
+        ctx.fillRect(x, y, GRID_SIZE, GRID_SIZE);
+        ctx.strokeStyle = '#4c1d95';
+        ctx.strokeRect(x+2, y+2, GRID_SIZE-4, GRID_SIZE-4);
+      } else {
+        // Пол
+        ctx.fillStyle = '#1e1b4b';
+        ctx.fillRect(x, y, GRID_SIZE, GRID_SIZE);
+        ctx.strokeStyle = 'rgba(124, 58, 237, 0.1)';
+        ctx.strokeRect(x, y, GRID_SIZE, GRID_SIZE);
+      }
+    }
+  }
+
+  // Отрисовка Портала
+  if (portal.active) {
+    let px = portal.x * GRID_SIZE + GRID_SIZE/2;
+    let py = portal.y * GRID_SIZE + GRID_SIZE/2;
+    let time = Date.now() * 0.005;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(px, py, 16 + Math.sin(time)*3, 0, Math.PI * 2);
+    ctx.fillStyle = '#a855f7';
+    ctx.shadowColor = '#c084fc';
+    ctx.shadowBlur = 15;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Отрисовка Кристаллов
+  gems.forEach(g => {
+    if (!g.collected) {
+      let gx = g.x * GRID_SIZE + GRID_SIZE/2;
+      let gy = g.y * GRID_SIZE + GRID_SIZE/2;
+      ctx.save();
+      ctx.translate(gx, gy);
+      ctx.fillStyle = '#c084fc';
+      ctx.beginPath();
+      ctx.moveTo(0, -10);
+      ctx.lineTo(8, 0);
+      ctx.lineTo(0, 10);
+      ctx.lineTo(-8, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+  });
+
+  // Отрисовка Врагов (Призраков)
+  enemies.forEach(e => {
+    ctx.save();
+    ctx.fillStyle = '#f43f5e';
+    ctx.shadowColor = '#f43f5e';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.arc(e.px + 14, e.py + 12, 12, Math.PI, 0, false);
+    ctx.lineTo(e.px + 26, e.py + 26);
+    ctx.lineTo(e.px + 20, e.py + 22);
+    ctx.lineTo(e.px + 14, e.py + 26);
+    ctx.lineTo(e.px + 8, e.py + 22);
+    ctx.lineTo(e.px + 2, e.py + 26);
+    ctx.closePath();
+    ctx.fill();
+
+    // Глаза призрака
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(e.px + 10, e.py + 10, 3, 0, Math.PI * 2);
+    ctx.arc(e.px + 18, e.py + 10, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // Отрисовка Игрока
+  ctx.save();
+  ctx.fillStyle = '#38bdf8';
+  ctx.shadowColor = '#38bdf8';
+  ctx.shadowBlur = 12;
+  ctx.beginPath();
+  ctx.arc(player.px + player.size/2, player.py + player.size/2, player.size/2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function gameLoop() {
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
+
+</body>
+</html>

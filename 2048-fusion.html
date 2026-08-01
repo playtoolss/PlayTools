@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"><title>2048 Fusion - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #7c2d12; color: #fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { max-width: 500px; width:100%; background: #451a03; border-radius: 20px; padding: 25px; border: 1px solid #f97316; box-shadow: 0 0 30px rgba(249,115,22,0.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#fed7aa; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(254,215,170,0.1); border-radius:999px; margin-bottom:15px; }
+.grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; background:#7c2d12; padding:10px; border-radius:14px; margin:20px 0; }
+.tile { height:85px; background:rgba(255,255,255,0.1); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.8rem; font-weight:800; color:#fff; }
+.hud { display:flex; justify-content:space-between; font-weight:800; font-size:1.3rem; color:#fed7aa; }
+.btn { background: linear-gradient(135deg, #f97316, #fb923c); color:#fff; border:none; padding:12px 30px; font-weight:800; font-size:1.1rem; border-radius:999px; cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>🧩 2048 Fusion</h1>
+  <p>Соединяй числа! Стрелки / WASD или Свайпы!</p>
+  <div class="hud">
+    <div id="score">Счёт: 0</div>
+    <div id="highScore">Рекорд: 0</div>
+  </div>
+  <div class="grid" id="grid"></div>
+  <button class="btn" id="resetBtn">Новая игра</button>
+</div>
+<script>
+let board = Array(16).fill(0);
+let score = 0, highScore = localStorage.getItem('2048_hi') || 0;
+document.getElementById('highScore').textContent = `Рекорд: ${highScore}`;
+const gridEl = document.getElementById('grid');
+
+function init() {
+  board = Array(16).fill(0); score = 0;
+  spawnTile(); spawnTile(); draw();
+}
+
+function spawnTile() {
+  let empty = board.map((v, i) => v === 0 ? i : null).filter(v => v !== null);
+  if (empty.length) {
+    let idx = empty[Math.floor(Math.random() * empty.length)];
+    board[idx] = Math.random() < 0.9 ? 2 : 4;
+  }
+}
+
+function draw() {
+  gridEl.innerHTML = '';
+  document.getElementById('score').textContent = `Счёт: ${score}`;
+  board.forEach(v => {
+    let t = document.createElement('div');
+    t.className = 'tile'; t.textContent = v ? v : '';
+    t.style.background = v ? getTileColor(v) : 'rgba(255,255,255,0.08)';
+    gridEl.appendChild(t);
+  });
+}
+
+function getTileColor(v) {
+  let colors = { 2: '#ea580c', 4: '#d97706', 8: '#ca8a04', 16: '#65a30d', 32: '#0d9488', 64: '#0284c7', 128: '#4f46e5', 256: '#7c3aed', 512: '#c026d3', 1024: '#db2777', 2048: '#e11d48' };
+  return colors[v] || '#e11d48';
+}
+
+window.addEventListener('keydown', e => {
+  if (['ArrowUp','KeyW'].includes(e.code)) moveUp();
+  if (['ArrowDown','KeyS'].includes(e.code)) moveDown();
+  if (['ArrowLeft','KeyA'].includes(e.code)) moveLeft();
+  if (['ArrowRight','KeyD'].includes(e.code)) moveRight();
+});
+
+function moveLeft() { slide(0,1,2,3); slide(4,5,6,7); slide(8,9,10,11); slide(12,13,14,15); }
+function moveRight() { slide(3,2,1,0); slide(7,6,5,4); slide(11,10,9,8); slide(15,14,13,12); }
+function moveUp() { slide(0,4,8,12); slide(1,5,9,13); slide(2,6,10,14); slide(3,7,11,15); }
+function moveDown() { slide(12,8,4,0); slide(13,9,5,1); slide(14,10,6,2); slide(15,11,7,3); }
+
+function slide(a, b, c, d) {
+  let row = [board[a], board[b], board[c], board[d]].filter(v => v);
+  for (let i = 0; i < row.length - 1; i++) {
+    if (row[i] === row[i+1]) { row[i] *= 2; score += row[i]; row.splice(i+1, 1); }
+  }
+  while (row.length < 4) row.push(0);
+  let prev = `${board[a]},${board[b]},${board[c]},${board[d]}`;
+  board[a] = row[0]; board[b] = row[1]; board[c] = row[2]; board[d] = row[3];
+  if (prev !== row.join(',')) { spawnTile(); draw(); }
+}
+
+document.getElementById('resetBtn').addEventListener('click', init);
+init();
+</script>
+</body>
+</html>

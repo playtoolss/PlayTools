@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"><title>Snake Master - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #064e3b; color: #fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { max-width: 850px; width:100%; background: #022c22; border-radius: 20px; padding: 25px; border: 1px solid #10b981; box-shadow: 0 0 30px rgba(16,185,129,0.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#34d399; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(52,211,153,0.1); border-radius:999px; margin-bottom:15px; }
+.game-container { position:relative; width:100%; height:440px; margin:20px 0; background:#065f46; border-radius:12px; overflow:hidden; border:2px solid #10b981; display:flex; justify-content:center; align-items:center; }
+canvas { display:block; background:#022c22; }
+.hud { position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-weight:800; font-size:1.3rem; color:#34d399; pointer-events:none; z-index:10; }
+.overlay { position:absolute; inset:0; background:rgba(2,44,34,0.85); backdrop-filter:blur(5px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; }
+.btn { background: linear-gradient(135deg, #10b981, #34d399); color:#022c22; border:none; padding:12px 30px; font-weight:800; font-size:1.1rem; border-radius:999px; cursor:pointer; margin-top:15px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>🐍 Snake Master</h1>
+  <p>Классическая змейка! Управление: Стрелки / WASD!</p>
+  <div class="game-container">
+    <div class="hud">
+      <div id="score">Длина: 3</div>
+      <div id="highScore">Рекорд: 3</div>
+    </div>
+    <div id="overlay" class="overlay">
+      <h2 id="ovTitle">Snake Master</h2>
+      <p id="ovSub">Собирай яблоки и расти!</p>
+      <button class="btn" id="startBtn">Играть</button>
+    </div>
+    <canvas id="canvas" width="400" height="400"></canvas>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const highScoreEl = document.getElementById('highScore');
+const overlay = document.getElementById('overlay');
+const startBtn = document.getElementById('startBtn');
+
+const GRID = 20, TILE = 20;
+let state = 'START', score = 3, highScore = localStorage.getItem('snake_hi') || 3;
+highScoreEl.textContent = `Рекорд: ${highScore}`;
+
+let snake = [{x:10, y:10}, {x:9, y:10}, {x:8, y:10}];
+let dx = 1, dy = 0, food = {x:15, y:15}, gameInterval;
+
+window.addEventListener('keydown', e => {
+  if (['ArrowUp','KeyW'].includes(e.code) && dy===0) { dx=0; dy=-1; }
+  if (['ArrowDown','KeyS'].includes(e.code) && dy===0) { dx=0; dy=1; }
+  if (['ArrowLeft','KeyA'].includes(e.code) && dx===0) { dx=-1; dy=0; }
+  if (['ArrowRight','KeyD'].includes(e.code) && dx===0) { dx=1; dy=0; }
+});
+
+startBtn.addEventListener('click', start);
+
+function spawnFood() {
+  food = { Math_floor: Math.floor(Math.random()*GRID), x: Math.floor(Math.random()*GRID), y: Math.floor(Math.random()*GRID) };
+}
+
+function start() {
+  snake = [{x:10, y:10}, {x:9, y:10}, {x:8, y:10}];
+  dx = 1; dy = 0; score = 3; spawnFood();
+  scoreEl.textContent = `Длина: 3`;
+  state = 'PLAYING'; overlay.style.display = 'none';
+  clearInterval(gameInterval);
+  gameInterval = setInterval(update, 100);
+}
+
+function gameOver() {
+  state = 'GAMEOVER'; clearInterval(gameInterval);
+  if (score > highScore) { highScore = score; localStorage.setItem('snake_hi', highScore); highScoreEl.textContent = `Рекорд: ${highScore}`; }
+  document.getElementById('ovTitle').textContent = 'Змейка Врезалась!';
+  document.getElementById('ovSub').textContent = `Итоговая длина: ${score}`;
+  startBtn.textContent = 'Ещё раз'; overlay.style.display = 'flex';
+}
+
+function update() {
+  let head = { x: snake[0].x + dx, y: snake[0].y + dy };
+
+  if (head.x < 0 || head.x >= GRID || head.y < 0 || head.y >= GRID || snake.some(s => s.x===head.x && s.y===head.y)) {
+    return gameOver();
+  }
+
+  snake.unshift(head);
+  if (head.x === food.x && head.y === food.y) {
+    score++; scoreEl.textContent = `Длина: ${score}`; spawnFood();
+  } else {
+    snake.pop();
+  }
+  draw();
+}
+
+function draw() {
+  ctx.fillStyle = '#022c22'; ctx.fillRect(0,0,400,400);
+
+  // Food
+  ctx.fillStyle = '#ef4444'; ctx.fillRect(food.x*TILE + 2, food.y*TILE + 2, TILE - 4, TILE - 4);
+
+  // Snake
+  snake.forEach((s, i) => {
+    ctx.fillStyle = i === 0 ? '#34d399' : '#10b981';
+    ctx.fillRect(s.x*TILE + 1, s.y*TILE + 1, TILE - 2, TILE - 2);
+  });
+}
+</script>
+</body>
+</html>

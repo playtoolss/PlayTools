@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"><title>Speed Racer - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #18181b; color: #fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { max-width: 850px; width:100%; background: #27272a; border-radius: 20px; padding: 25px; border: 1px solid #eab308; box-shadow: 0 0 30px rgba(234,179,8,0.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#fef08a; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(254,240,138,0.1); border-radius:999px; margin-bottom:15px; }
+.game-container { position:relative; width:100%; height:450px; margin:20px 0; background:#09090b; border-radius:12px; overflow:hidden; border:2px solid #eab308; display:flex; justify-content:center; }
+canvas { display:block; }
+.hud { position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-weight:800; font-size:1.3rem; color:#fef08a; pointer-events:none; z-index:10; }
+.overlay { position:absolute; inset:0; background:rgba(24,24,27,0.85); backdrop-filter:blur(5px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; }
+.btn { background: linear-gradient(135deg, #ca8a04, #eab308); color:#000; border:none; padding:12px 30px; font-weight:800; font-size:1.1rem; border-radius:999px; cursor:pointer; margin-top:15px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>🏎️ Speed Racer</h1>
+  <p>Автомобильные гонки! Рули машиной (Стрелки влево/вправо или A/D)!</p>
+  <div class="game-container">
+    <div class="hud">
+      <div id="score">Счёт: 0</div>
+      <div id="highScore">Рекорд: 0</div>
+    </div>
+    <div id="overlay" class="overlay">
+      <h2 id="ovTitle">Speed Racer</h2>
+      <p id="ovSub">Объезжай встречные машинки!</p>
+      <button class="btn" id="startBtn">Газ в пол</button>
+    </div>
+    <canvas id="canvas" width="400" height="450"></canvas>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const highScoreEl = document.getElementById('highScore');
+const overlay = document.getElementById('overlay');
+const startBtn = document.getElementById('startBtn');
+
+let state = 'START', score = 0, highScore = localStorage.getItem('racer_hi') || 0;
+highScoreEl.textContent = `Рекорд: ${highScore}`;
+
+let car = { x: 180, y: 360, w: 40, h: 70, speed: 6 };
+let enemies = [], frame = 0, keys = {};
+
+window.addEventListener('keydown', e => { keys[e.code] = true; });
+window.addEventListener('keyup', e => { keys[e.code] = false; });
+startBtn.addEventListener('click', start);
+
+function start() {
+  car.x = 180; enemies = []; score = 0; frame = 0;
+  scoreEl.textContent = `Счёт: 0`; state = 'PLAYING'; overlay.style.display = 'none';
+}
+
+function gameOver() {
+  state = 'GAMEOVER';
+  if (score > highScore) { highScore = score; localStorage.setItem('racer_hi', highScore); highScoreEl.textContent = `Рекорд: ${highScore}`; }
+  document.getElementById('ovTitle').textContent = '💥 Авария!';
+  document.getElementById('ovSub').textContent = `Твой счёт: ${score}`;
+  startBtn.textContent = 'Ещё раз'; overlay.style.display = 'flex';
+}
+
+function update() {
+  if (state !== 'PLAYING') return;
+  frame++;
+  if (keys['ArrowLeft'] || keys['KeyA']) car.x -= car.speed;
+  if (keys['ArrowRight'] || keys['KeyD']) car.x += car.speed;
+
+  car.x = Math.max(60, Math.min(300, car.x));
+
+  if (frame % 45 === 0) {
+    let lanes = [70, 150, 230, 290];
+    enemies.push({ x: lanes[Math.floor(Math.random()*lanes.length)], y: -80, w: 40, h: 70, vy: 5 + Math.floor(score/100) });
+  }
+
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    let e = enemies[i]; e.y += e.vy;
+    if (car.x < e.x + e.w && car.x + car.w > e.x && car.y < e.y + e.h && car.y + car.h > e.y) {
+      gameOver();
+    }
+    if (e.y > 450) { enemies.splice(i, 1); score += 10; scoreEl.textContent = `Счёт: ${score}`; }
+  }
+}
+
+function draw() {
+  ctx.fillStyle = '#09090b'; ctx.fillRect(0,0,400,450);
+
+  // Road borders
+  ctx.fillStyle = '#3f3f46'; ctx.fillRect(50, 0, 10, 450); ctx.fillRect(340, 0, 10, 450);
+
+  // Player Car
+  ctx.fillStyle = '#eab308'; ctx.fillRect(car.x, car.y, car.w, car.h);
+
+  // Enemy Cars
+  ctx.fillStyle = '#ef4444';
+  enemies.forEach(e => { ctx.fillRect(e.x, e.y, e.w, e.h); });
+}
+
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+loop();
+</script>
+</body>
+</html>

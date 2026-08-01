@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<title>Sky Journey - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --blue: #2563eb;
+  --blue-gradient: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%);
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-500: #64748b;
+  --gray-700: #334155;
+  --gray-900: #0f172a;
+  --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
+  --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.12);
+}
+
+body {
+  font-family: var(--font);
+  background: linear-gradient(180deg, #e0f2fe 0%, #f8fafc 50%, #ffffff 100%);
+  color: var(--gray-900);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 900px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: var(--radius-xl);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--blue);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  transition: all 0.2s;
+  margin-bottom: 1.5rem;
+}
+
+.back-btn:hover {
+  background: rgba(37, 99, 235, 0.15);
+  transform: translateX(-3px);
+}
+
+.game-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.game-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.game-title {
+  font-size: clamp(2rem, 5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: var(--blue-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+
+.game-desc {
+  font-size: 1rem;
+  color: var(--gray-500);
+}
+
+.game-container {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  height: 480px;
+  margin: 1.5rem auto;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  background: #70c5ce;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hud {
+  position: absolute;
+  top: 15px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  z-index: 10;
+}
+
+.overlay-screen {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  z-index: 20;
+  text-align: center;
+  padding: 20px;
+}
+
+.overlay-screen h2 {
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.overlay-screen p {
+  font-size: 1.1rem;
+  color: #cbd5e1;
+  margin-bottom: 20px;
+}
+
+.start-btn {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+  transition: all 0.2s ease;
+}
+
+.start-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 25px rgba(37, 99, 235, 0.5);
+}
+
+.game-info {
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.95), rgba(219, 234, 254, 0.55));
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.game-info h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 0.5rem;
+}
+
+.game-info ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.game-info li {
+  padding: 0.3rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+  color: var(--gray-700);
+}
+
+.game-info li:before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--blue);
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  
+  <div class="game-header">
+    <div class="game-icon">🌤️</div>
+    <h1 class="game-title">Sky Journey</h1>
+    <p class="game-desc">Полный вперед сквозь небесные препятствия! Собери максимум монет!</p>
+  </div>
+
+  <div class="game-container">
+    <div class="hud">
+      <div id="scoreDisplay">Счёт: 0</div>
+      <div id="coinsDisplay">🪙 0</div>
+      <div id="highScoreDisplay">Рекорд: 0</div>
+    </div>
+    
+    <div id="overlay" class="overlay-screen">
+      <h2 id="overlayTitle">Sky Journey</h2>
+      <p id="overlaySub">Жми Пробел / Нажмите на экран, чтобы взлететь!</p>
+      <button id="startBtn" class="start-btn">Играть</button>
+    </div>
+
+    <canvas id="gameCanvas" width="800" height="480"></canvas>
+  </div>
+
+  <div class="game-info">
+    <h2>🎮 Управление</h2>
+    <ul>
+      <li><strong>Пробел / Клик мыши / Тап по экрану</strong> — Взлёт на небесном планере</li>
+      <li>Пролетай между гигантскими облачными колоннами</li>
+      <li>Собирай золотые монеты для дополнительных очков (+5 очков)</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const scoreDisplay = document.getElementById('scoreDisplay');
+const coinsDisplay = document.getElementById('coinsDisplay');
+const highScoreDisplay = document.getElementById('highScoreDisplay');
+const overlay = document.getElementById('overlay');
+const overlayTitle = document.getElementById('overlayTitle');
+const overlaySub = document.getElementById('overlaySub');
+const startBtn = document.getElementById('startBtn');
+
+let gameState = 'START'; // START, PLAYING, GAMEOVER
+let score = 0;
+let coins = 0;
+let highScore = localStorage.getItem('sky_journey_high') || 0;
+highScoreDisplay.textContent = `Рекорд: ${highScore}`;
+
+let bird = {
+  x: 100,
+  y: 200,
+  width: 38,
+  height: 30,
+  gravity: 0.45,
+  lift: -8.5,
+  velocity: 0,
+  rotation: 0
+};
+
+let obstacles = [];
+let coinItems = [];
+let particles = [];
+let clouds = [];
+let frameCount = 0;
+
+// Инициализация облаков на заднем фоне
+for(let i=0; i<6; i++) {
+  clouds.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * (canvas.height / 2),
+    speed: 0.5 + Math.random() * 0.8,
+    radius: 20 + Math.random() * 25
+  });
+}
+
+function resetGame() {
+  bird.y = 200;
+  bird.velocity = 0;
+  bird.rotation = 0;
+  obstacles = [];
+  coinItems = [];
+  particles = [];
+  score = 0;
+  coins = 0;
+  frameCount = 0;
+  scoreDisplay.textContent = `Счёт: 0`;
+  coinsDisplay.textContent = `🪙 0`;
+}
+
+function flap() {
+  if (gameState === 'PLAYING') {
+    bird.velocity = bird.lift;
+    // Партиклы при взмахе
+    for(let i=0; i<5; i++) {
+      particles.push({
+        x: bird.x - 5,
+        y: bird.y + bird.height/2,
+        vx: -2 - Math.random()*2,
+        vy: (Math.random() - 0.5)*3,
+        size: 3 + Math.random()*4,
+        alpha: 1,
+        color: '#fff'
+      });
+    }
+  }
+}
+
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (gameState === 'START' || gameState === 'GAMEOVER') {
+      startGame();
+    } else {
+      flap();
+    }
+  }
+});
+
+canvas.addEventListener('mousedown', (e) => {
+  if (gameState === 'PLAYING') flap();
+});
+
+startBtn.addEventListener('click', () => {
+  startGame();
+});
+
+function startGame() {
+  resetGame();
+  gameState = 'PLAYING';
+  overlay.style.display = 'none';
+}
+
+function gameOver() {
+  gameState = 'GAMEOVER';
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('sky_journey_high', highScore);
+    highScoreDisplay.textContent = `Рекорд: ${highScore}`;
+  }
+  overlayTitle.textContent = 'Игра Окончена!';
+  overlaySub.textContent = `Итоговый счёт: ${score} | Монеты: ${coins}`;
+  startBtn.textContent = 'Попробовать снова';
+  overlay.style.display = 'flex';
+}
+
+function createObstacle() {
+  const gap = 140;
+  const minTop = 50;
+  const maxTop = canvas.height - gap - 100;
+  const topHeight = Math.floor(Math.random() * (maxTop - minTop + 1)) + minTop;
+  
+  obstacles.push({
+    x: canvas.width,
+    top: topHeight,
+    bottom: canvas.height - topHeight - gap,
+    width: 60,
+    passed: false
+  });
+
+  // Спавн монеты в центре прохода
+  if (Math.random() > 0.3) {
+    coinItems.push({
+      x: canvas.width + 30,
+      y: topHeight + gap / 2,
+      radius: 12,
+      collected: false
+    });
+  }
+}
+
+function update() {
+  if (gameState !== 'PLAYING') return;
+
+  frameCount++;
+
+  // Птица / Самолётик
+  bird.velocity += bird.gravity;
+  bird.y += bird.velocity;
+
+  // Наклон
+  bird.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, bird.velocity * 0.08));
+
+  // Падение или вылет за экран
+  if (bird.y + bird.height >= canvas.height - 20 || bird.y <= 0) {
+    gameOver();
+  }
+
+  // Облака
+  clouds.forEach(c => {
+    c.x -= c.speed;
+    if(c.x < -100) c.x = canvas.width + 50;
+  });
+
+  // Спавн препятствий
+  if (frameCount % 100 === 0) {
+    createObstacle();
+  }
+
+  // Обновление препятствий
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    let obs = obstacles[i];
+    obs.x -= 3;
+
+    // Столкновение с верхним или нижним блоком
+    if (
+      bird.x + bird.width > obs.x &&
+      bird.x < obs.x + obs.width &&
+      (bird.y < obs.top || bird.y + bird.height > canvas.height - obs.bottom)
+    ) {
+      gameOver();
+    }
+
+    // Очки за прохождение
+    if (!obs.passed && obs.x + obs.width < bird.x) {
+      obs.passed = true;
+      score += 10;
+      scoreDisplay.textContent = `Счёт: ${score}`;
+    }
+
+    if (obs.x + obs.width < 0) {
+      obstacles.splice(i, 1);
+    }
+  }
+
+  // Монеты
+  for (let i = coinItems.length - 1; i >= 0; i--) {
+    let coin = coinItems[i];
+    coin.x -= 3;
+
+    // Сбор монеты
+    let dist = Math.hypot((bird.x + bird.width/2) - coin.x, (bird.y + bird.height/2) - coin.y);
+    if (!coin.collected && dist < coin.radius + bird.width/2) {
+      coin.collected = true;
+      coins++;
+      score += 5;
+      scoreDisplay.textContent = `Счёт: ${score}`;
+      coinsDisplay.textContent = `🪙 ${coins}`;
+
+      // Эффект сбора
+      for(let k=0; k<8; k++) {
+        particles.push({
+          x: coin.x,
+          y: coin.y,
+          vx: (Math.random() - 0.5)*6,
+          vy: (Math.random() - 0.5)*6,
+          size: 4,
+          alpha: 1,
+          color: '#fbbf24'
+        });
+      }
+    }
+
+    if (coin.x < -20 || coin.collected) {
+      coinItems.splice(i, 1);
+    }
+  }
+
+  // Частицы
+  for (let i = particles.length - 1; i >= 0; i--) {
+    let p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.alpha -= 0.03;
+    if (p.alpha <= 0) particles.splice(i, 1);
+  }
+}
+
+function draw() {
+  // Задний фон - Небо
+  let skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  skyGradient.addColorStop(0, '#38bdf8');
+  skyGradient.addColorStop(0.7, '#bae6fd');
+  skyGradient.addColorStop(1, '#e0f2fe');
+  ctx.fillStyle = skyGradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Облака на фоне
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  clouds.forEach(c => {
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+    ctx.arc(c.x + c.radius*0.7, c.y - c.radius*0.2, c.radius*0.8, 0, Math.PI * 2);
+    ctx.arc(c.x - c.radius*0.7, c.y - c.radius*0.2, c.radius*0.8, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Земля
+  ctx.fillStyle = '#10b981';
+  ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+  ctx.fillStyle = '#047857';
+  ctx.fillRect(0, canvas.height - 20, canvas.width, 4);
+
+  // Препятствия (Облачные колонны)
+  obstacles.forEach(obs => {
+    let colGrad = ctx.createLinearGradient(obs.x, 0, obs.x + obs.width, 0);
+    colGrad.addColorStop(0, '#0284c7');
+    colGrad.addColorStop(0.5, '#38bdf8');
+    colGrad.addColorStop(1, '#0369a1');
+
+    ctx.fillStyle = colGrad;
+    // Верхняя колонна
+    ctx.fillRect(obs.x, 0, obs.width, obs.top);
+    ctx.fillStyle = '#0284c7';
+    ctx.fillRect(obs.x - 4, obs.top - 15, obs.width + 8, 15);
+
+    // Нижняя колонна
+    ctx.fillStyle = colGrad;
+    ctx.fillRect(obs.x, canvas.height - obs.bottom, obs.width, obs.bottom);
+    ctx.fillStyle = '#0284c7';
+    ctx.fillRect(obs.x - 4, canvas.height - obs.bottom, obs.width + 8, 15);
+  });
+
+  // Монеты
+  coinItems.forEach(coin => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(coin.x, coin.y, coin.radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#f59e0b';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#fbbf24';
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('$', coin.x, coin.y);
+    ctx.restore();
+  });
+
+  // Партиклы
+  particles.forEach(p => {
+    ctx.save();
+    ctx.globalAlpha = p.alpha;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // Самолетик / Персонаж
+  ctx.save();
+  ctx.translate(bird.x + bird.width / 2, bird.y + bird.height / 2);
+  ctx.rotate(bird.rotation);
+
+  // Крыло / Тело птички
+  ctx.fillStyle = '#f43f5e';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, bird.width/2, bird.height/2, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Глаз
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(8, -4, 6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(10, -4, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Клюв
+  ctx.fillStyle = '#fbbf24';
+  ctx.beginPath();
+  ctx.moveTo(12, 2);
+  ctx.lineTo(22, 6);
+  ctx.lineTo(12, 10);
+  ctx.closePath();
+  ctx.fill();
+
+  // Крылышко
+  ctx.fillStyle = '#e11d48';
+  ctx.beginPath();
+  ctx.ellipse(-6, 4, 8, 5, Math.PI/6, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function gameLoop() {
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
+
+</body>
+</html>

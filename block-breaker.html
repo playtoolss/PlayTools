@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"><title>Block Breaker - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #1e1b4b; color: #fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { max-width: 850px; width:100%; background: #312e81; border-radius: 20px; padding: 25px; border: 1px solid #818cf8; box-shadow: 0 0 30px rgba(129,140,248,0.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#c7d2fe; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(199,210,254,0.1); border-radius:999px; margin-bottom:15px; }
+.game-container { position:relative; width:100%; height:450px; margin:20px 0; background:#0f172a; border-radius:12px; overflow:hidden; border:2px solid #818cf8; }
+canvas { width:100%; height:100%; display:block; }
+.hud { position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-weight:800; font-size:1.3rem; color:#818cf8; pointer-events:none; z-index:10; }
+.overlay { position:absolute; inset:0; background:rgba(30,27,75,0.85); backdrop-filter:blur(5px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; }
+.btn { background: linear-gradient(135deg, #6366f1, #818cf8); color:#fff; border:none; padding:12px 30px; font-weight:800; font-size:1.1rem; border-radius:999px; cursor:pointer; margin-top:15px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>🧱 Block Breaker</h1>
+  <p>Арканоид! Двигай платформу мышкой или стрелками!</p>
+  <div class="game-container">
+    <div class="hud">
+      <div id="score">Счёт: 0</div>
+      <div id="lives">❤️ 3</div>
+    </div>
+    <div id="overlay" class="overlay">
+      <h2 id="ovTitle">Block Breaker</h2>
+      <p id="ovSub">Разбей все блоки на экране!</p>
+      <button class="btn" id="startBtn">Старт</button>
+    </div>
+    <canvas id="canvas" width="800" height="450"></canvas>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const livesEl = document.getElementById('lives');
+const overlay = document.getElementById('overlay');
+const startBtn = document.getElementById('startBtn');
+
+let state = 'START', score = 0, lives = 3;
+let paddle = { x: 350, w: 100, h: 15 };
+let ball = { x: 400, y: 400, vx: 4, vy: -4, r: 8 };
+let bricks = [], ROWS = 5, COLS = 9, B_W = 75, B_H = 20;
+
+canvas.addEventListener('mousemove', e => {
+  let r = canvas.getBoundingClientRect();
+  paddle.x = e.clientX - r.left - paddle.w/2;
+});
+
+startBtn.addEventListener('click', start);
+
+function initBricks() {
+  bricks = [];
+  for(let r=0; r<ROWS; r++) {
+    for(let c=0; c<COLS; c++) {
+      bricks.push({ x: 45 + c*80, y: 50 + r*28, status: 1 });
+    }
+  }
+}
+
+function start() {
+  score = 0; lives = 3; paddle.x = 350; ball.x = 400; ball.y = 350; ball.vx = 4; ball.vy = -4;
+  initBricks(); scoreEl.textContent = `Счёт: 0`; livesEl.textContent = `❤️ 3`;
+  state = 'PLAYING'; overlay.style.display = 'none';
+}
+
+function gameOver(win) {
+  state = 'GAMEOVER';
+  document.getElementById('ovTitle').textContent = win ? '🎉 Все блоки разбиты!' : '💀 Игра Окончена!';
+  document.getElementById('ovSub').textContent = `Итоговый счёт: ${score}`;
+  startBtn.textContent = 'Ещё раз'; overlay.style.display = 'flex';
+}
+
+function update() {
+  if (state !== 'PLAYING') return;
+
+  ball.x += ball.vx; ball.y += ball.vy;
+
+  if (ball.x - ball.r < 0 || ball.x + ball.r > 800) ball.vx *= -1;
+  if (ball.y - ball.r < 0) ball.vy *= -1;
+
+  // Paddle hit
+  if (ball.y + ball.r >= 410 && ball.x >= paddle.x && ball.x <= paddle.x + paddle.w) {
+    ball.vy = -Math.abs(ball.vy);
+  }
+
+  // Fall down
+  if (ball.y > 450) {
+    lives--; livesEl.textContent = `❤️ ${lives}`;
+    if (lives <= 0) gameOver(false);
+    else { ball.x = 400; ball.y = 350; ball.vy = -4; }
+  }
+
+  // Bricks hit
+  let allCleared = true;
+  bricks.forEach(b => {
+    if (b.status === 1) {
+      allCleared = false;
+      if (ball.x > b.x && ball.x < b.x + B_W && ball.y - ball.r < b.y + B_H && ball.y + ball.r > b.y) {
+        ball.vy *= -1; b.status = 0; score += 10; scoreEl.textContent = `Счёт: ${score}`;
+      }
+    }
+  });
+
+  if (allCleared) gameOver(true);
+}
+
+function draw() {
+  ctx.fillStyle = '#0f172a'; ctx.fillRect(0,0,800,450);
+
+  // Paddle
+  ctx.fillStyle = '#818cf8'; ctx.fillRect(paddle.x, 410, paddle.w, paddle.h);
+
+  // Ball
+  ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); ctx.fill();
+
+  // Bricks
+  bricks.forEach(b => {
+    if (b.status === 1) {
+      ctx.fillStyle = '#6366f1'; ctx.fillRect(b.x, b.y, B_W, B_H);
+    }
+  });
+}
+
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+loop();
+</script>
+</body>
+</html>

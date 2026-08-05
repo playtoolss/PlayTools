@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neon Pong Duo - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #090d16; color: #fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { max-width: 850px; width:100%; background: #111827; border-radius: 20px; padding: 25px; border: 1px solid #22d3ee; box-shadow: 0 0 30px rgba(34,211,238,0.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#22d3ee; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(34,211,238,0.1); border-radius:999px; margin-bottom:15px; }
+.game-container { position:relative; width:100%; height:400px; margin:20px 0; background:#050811; border-radius:12px; overflow:hidden; border:2px solid #22d3ee; }
+canvas { width:100%; height:100%; display:block; }
+.hud { position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-weight:800; font-size:1.2rem; color:#22d3ee; pointer-events:none; z-index:10; }
+.overlay { position:absolute; inset:0; background:rgba(9,13,22,0.85); backdrop-filter:blur(5px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; }
+.btn { background: linear-gradient(135deg, #22d3ee, #7c6cff); color:#fff; border:none; padding:12px 30px; font-weight:800; font-size:1.1rem; border-radius:999px; cursor:pointer; margin-top:15px; }
+.hint { margin-top:10px; font-size:0.8rem; color:#94a3b8; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>🏓 Neon Pong Duo</h1>
+  <p>Понг без ИИ — играй против себя или на двоих!</p>
+  <div class="game-container">
+    <div class="hud">
+      <div id="scoreL">Левый: 0</div>
+      <div id="scoreR">Правый: 0</div>
+    </div>
+    <div id="overlay" class="overlay">
+      <h2 id="ovTitle">Neon Pong Duo</h2>
+      <p id="ovSub">Двигай ракетки планками!</p>
+      <button class="btn" id="startBtn">Старт</button>
+      <div class="hint">← / → или A / D — движение</div>
+    </div>
+    <canvas id="canvas" width="800" height="400"></canvas>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const scoreLEl = document.getElementById('scoreL');
+const scoreREl = document.getElementById('scoreR');
+const overlay = document.getElementById('overlay');
+const ovTitle = document.getElementById('ovTitle');
+const ovSub = document.getElementById('ovSub');
+const startBtn = document.getElementById('startBtn');
+
+let state = 'START', winScore = 3;
+let pL = { y: 170 }, pR = { y: 170 }, ball = null;
+let scoreL = 0, scoreR = 0, keys = {};
+
+const paddleH = 80, paddleW = 14;
+
+window.addEventListener('keydown', e => { keys[e.code] = true; });
+window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+function start() { scoreL = 0; scoreR = 0; resetBall(); updateScore(); state = 'PLAYING'; overlay.style.display = 'none'; }
+function resetBall() { ball = { x: 400, y: 200, vx: (Math.random()<0.5?-1:1)*6, vy: (Math.random()-0.5)*4 }; }
+
+function updateScore() { scoreLEl.textContent = `Левый: ${scoreL}`; scoreREl.textContent = `Правый: ${scoreR}`; }
+
+function endGame(winner) {
+  state = 'GAMEOVER';
+  ovTitle.textContent = winner + ' победил! 🏆';
+  ovSub.textContent = `${scoreL} : ${scoreR}`;
+  startBtn.textContent = 'Ещё раз'; overlay.style.display = 'flex';
+}
+
+function update() {
+  if (state !== 'PLAYING') return;
+
+  if (keys['ArrowLeft'] || keys['KeyW']) pL.y -= 7;
+  if (keys['ArrowRight'] || keys['KeyS']) pL.y += 7;
+  if (keys['ArrowUp']) pR.y -= 7;
+  if (keys['ArrowDown']) pR.y += 7;
+  pL.y = Math.max(0, Math.min(320, pL.y));
+  pR.y = Math.max(0, Math.min(320, pR.y));
+
+  ball.x += ball.vx; ball.y += ball.vy;
+  if (ball.y < 5 || ball.y > 395) ball.vy *= -1;
+
+  if (ball.x < 30 && ball.x > 20 && ball.y > pL.y && ball.y < pL.y + paddleH) { ball.vx = Math.abs(ball.vx); }
+  if (ball.x > 770 && ball.x < 780 && ball.y > pR.y && ball.y < pR.y + paddleH) { ball.vx = -Math.abs(ball.vx); }
+
+  if (ball.x < 0) { scoreR++; updateScore(); if (scoreR >= winScore) return endGame('Правый'); resetBall(); }
+  if (ball.x > 800) { scoreL++; updateScore(); if (scoreL >= winScore) return endGame('Левый'); resetBall(); }
+}
+
+function draw() {
+  ctx.fillStyle = '#050811'; ctx.fillRect(0,0,800,400);
+  ctx.strokeStyle = 'rgba(34,211,238,0.3)'; ctx.lineWidth = 2;
+  ctx.setLineDash([8,10]); ctx.beginPath(); ctx.moveTo(400,0); ctx.lineTo(400,400); ctx.stroke(); ctx.setLineDash([]);
+
+  ctx.shadowColor = '#22d3ee'; ctx.shadowBlur = 12;
+  ctx.fillStyle = '#7c6cff'; ctx.fillRect(10, pL.y, paddleW, paddleH);
+  ctx.fillStyle = '#ff0055'; ctx.fillRect(776, pR.y, paddleW, paddleH);
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(ball.x, ball.y, 8, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+loop();
+</script>
+</body>
+</html>

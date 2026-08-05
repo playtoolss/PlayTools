@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reaction Test — PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif; background:#090d16; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { width:100%; max-width:520px; background:#111827; border-radius:20px; padding:25px; border:1px solid #f59e0b; box-shadow:0 0 30px rgba(245,158,11,.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#f59e0b; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(245,158,11,.1); border-radius:999px; margin-bottom:15px; }
+.pad { height:300px; border-radius:16px; margin:18px 0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.15rem; text-align:center; cursor:pointer; user-select:none; border:2px solid var(--border,#333); transition:background .2s; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>⚡ Reaction Test</h1>
+  <p>Нажми, когда поле станет зелёным!</p>
+  <div id="pad" class="pad" style="background:#1e293b; color:#94a3b8;">Нажмите, чтобы начать</div>
+  <div style="display:flex; justify-content:space-between; color:#f59e0b; font-weight:700; font-size:1.1rem;">
+    <div>Время: <b id="time">—</b> мс</div>
+    <div>Лучшее: <b id="best">—</b> мс</div>
+  </div>
+</div>
+<script>
+var pad=document.getElementById('pad');
+var timeEl=document.getElementById('time');
+var bestEl=document.getElementById('best');
+var best=parseInt(localStorage.getItem('reaction_hi')||0);
+if(best) bestEl.textContent=best;
+
+var phase='idle', timeout=null, startTs=0;
+
+function setColor(bg, txt){
+  pad.style.background=bg; pad.style.color=txt;
+}
+
+pad.addEventListener('click', function(){
+  if(phase==='idle'){
+    phase='waiting';
+    setColor('#9a3412','#fef3c7');
+    pad.textContent='Ждите зелёного...';
+    timeout=setTimeout(function(){ phase='go'; start=performance.now(); setColor('#22c55e','#fff'); pad.textContent='ЖМИ!'; }, 1000+Math.random()*2500);
+  } else if(phase==='waiting'){
+    clearTimeout(timeout);
+    phase='idle';
+    setColor('#1e293b','#94a3b8');
+    pad.textContent='Слишком рано! Нажмите ещё раз';
+    timeEl.textContent='—';
+  } else if(phase==='go'){
+    var ms=Math.round(performance.now()-start);
+    timeEl.textContent=ms;
+    if(!best||ms<best){ best=ms; localStorage.setItem('reaction_hi',best); bestEl.textContent=best; }
+    phase='idle';
+    setColor('#1e293b','#94a3b8');
+    pad.textContent='Нажмите, чтобы повторить';
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Большой Хуй - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #090d16; color: #fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { max-width: 850px; width:100%; background: #111827; border-radius: 20px; padding: 25px; border: 1px solid #f472b6; box-shadow: 0 0 30px rgba(244,114,182,0.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#f472b6; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(244,114,182,0.1); border-radius:999px; margin-bottom:15px; }
+.game-container { position:relative; width:100%; height:400px; margin:20px 0; background:#050811; border-radius:12px; overflow:hidden; border:2px solid #f472b6; }
+canvas { width:100%; height:100%; display:block; }
+.hud { position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-weight:800; font-size:1.3rem; color:#f472b6; pointer-events:none; z-index:10; }
+.overlay { position:absolute; inset:0; background:rgba(9,13,22,0.85); backdrop-filter:blur(5px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; }
+.btn { background: linear-gradient(135deg, #f472b6, #7000ff); color:#fff; border:none; padding:12px 30px; font-weight:800; font-size:1.1rem; border-radius:999px; cursor:pointer; margin-top:15px; }
+.badge { display:inline-block; margin-top:10px; font-size:0.8rem; font-weight:700; color:#f9a8d4; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>🍆 Большой Хуй</h1>
+  <p>Собери как можно больше 💦 и не врежься в 🧱 (Пробел / Клик)!</p>
+  <div class="game-container">
+    <div class="hud">
+      <div id="score">Счёт: 0</div>
+      <div id="highScore">Рекорд: 0</div>
+    </div>
+    <div id="overlay" class="overlay">
+      <h2 id="ovTitle">Большой Хуй</h2>
+      <p id="ovSub">Нажми Пробел или Клик для прыжка!</p>
+      <button class="btn" id="startBtn">Старт</button>
+      <span class="badge">рофл 3000 · никаких правил</span>
+    </div>
+    <canvas id="canvas" width="800" height="400"></canvas>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const highScoreEl = document.getElementById('highScore');
+const overlay = document.getElementById('overlay');
+const ovTitle = document.getElementById('ovTitle');
+const ovSub = document.getElementById('ovSub');
+const startBtn = document.getElementById('startBtn');
+
+let state = 'START';
+let score = 0, highScore = localStorage.getItem('big_huy_hi') || 0;
+highScoreEl.textContent = `Рекорд: ${highScore}`;
+
+let runner = { x: 80, y: 245, w: 60, h: 95, vy: 0, gravity: 0.75, jump: -14, grounded: false };
+let obstacles = [], drops = [], frame = 0;
+
+function reset() {
+  runner.y = 245; runner.vy = 0; obstacles = []; drops = []; score = 0; frame = 0;
+  scoreEl.textContent = `Счёт: 0`;
+}
+
+function jump() {
+  if (state === 'PLAYING' && runner.grounded) {
+    runner.vy = runner.jump; runner.grounded = false;
+  }
+}
+
+window.addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); state==='PLAYING'?jump():start(); } });
+canvas.addEventListener('mousedown', () => { state==='PLAYING'?jump():start(); });
+startBtn.addEventListener('click', start);
+
+function start() { reset(); state = 'PLAYING'; overlay.style.display = 'none'; }
+
+function gameOver() {
+  state = 'GAMEOVER';
+  if (score > highScore) { highScore = score; localStorage.setItem('big_huy_hi', highScore); highScoreEl.textContent = `Рекорд: ${highScore}`; }
+  ovTitle.textContent = 'Бум! 😮‍💨'; ovSub.textContent = `Твой счёт: ${score} 💦`;
+  startBtn.textContent = 'Ещё раз'; overlay.style.display = 'flex';
+}
+
+function update() {
+  if (state !== 'PLAYING') return;
+  frame++;
+  runner.vy += runner.gravity;
+  runner.y += runner.vy;
+  if (runner.y >= 245) { runner.y = 245; runner.vy = 0; runner.grounded = true; }
+
+  if (frame % 70 === 0) {
+    obstacles.push({ x: 800, w: 22 + Math.random()*16, h: 34 + Math.random()*30 });
+  }
+  if (frame % 32 === 0) {
+    drops.push({ x: 800, y: 210 + Math.random()*60, r: 9 });
+  }
+
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    let o = obstacles[i]; o.x -= 6 + Math.floor(score/50);
+    if (runner.x + 10 < o.x + o.w && runner.x + runner.w - 10 > o.x && runner.y + runner.h > 340 - o.h) {
+      gameOver();
+    }
+    if (o.x + o.w < 0) { obstacles.splice(i, 1); }
+  }
+
+  for (let i = drops.length - 1; i >= 0; i--) {
+    let d = drops[i]; d.x -= 5 + Math.floor(score/80);
+    if (d.x > runner.x - d.r && d.x < runner.x + runner.w + d.r && d.y > runner.y - d.r && d.y < runner.y + runner.h + d.r) {
+      drops.splice(i, 1); score += 10;
+      scoreEl.textContent = `Счёт: ${score}`;
+    } else if (d.x + d.r < 0) {
+      drops.splice(i, 1);
+    }
+  }
+}
+
+function draw() {
+  ctx.fillStyle = '#050811'; ctx.fillRect(0,0,800,400);
+  ctx.fillStyle = '#f472b6'; ctx.fillRect(0, 340, 800, 4);
+
+  // 💦
+  drops.forEach(d => { ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.fillText('💦', d.x, d.y); });
+
+  // 🍆 большой
+  ctx.font = '80px serif'; ctx.textAlign = 'center';
+  ctx.shadowColor = '#f472b6'; ctx.shadowBlur = 18;
+  ctx.fillText('🍆', runner.x + runner.w/2, runner.y + runner.h - 18);
+  ctx.shadowBlur = 0;
+
+  // 🧱 препятствия
+  obstacles.forEach(o => {
+    ctx.font = `${Math.max(o.h, 30)}px serif`; ctx.textAlign = 'center';
+    ctx.fillText('🧱', o.x + o.w/2, 340 - 12);
+  });
+}
+
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+loop();
+</script>
+</body>
+</html>

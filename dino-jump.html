@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dino Jump - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif; background:#090d16; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { width:100%; max-width:850px; background:#111827; border-radius:20px; padding:25px; border:1px solid #4ade80; box-shadow:0 0 30px rgba(74,222,128,.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#4ade80; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(74,222,128,.1); border-radius:999px; margin-bottom:15px; }
+.game-wrap { position:relative; width:100%; margin:18px 0; background:#050811; border-radius:12px; overflow:hidden; border:2px solid #4ade80; }
+canvas { width:100%; display:block; }
+.hud { position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-weight:800; font-size:1.3rem; color:#4ade80; pointer-events:none; z-index:10; text-shadow:0 0 10px rgba(74,222,128,.5); }
+.overlay { position:absolute; inset:0; background:rgba(9,13,22,.85); backdrop-filter:blur(5px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; gap:8px; }
+.btn { background:linear-gradient(135deg,#4ade80,#22d3ee); color:#fff; border:none; padding:12px 32px; font-weight:800; font-size:1.1rem; border-radius:999px; cursor:pointer; }
+p.hint { color:#94a3b8; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>🦖 Dino Jump</h1>
+  <p>Прыгай через кактусы! Чем дальше, тем быстрее.</p>
+  <div class="game-wrap" style="height:300px;">
+    <div class="hud">
+      <div id="score">Счёт: 0</div>
+      <div id="best">Рекорд: 0</div>
+    </div>
+    <div id="overlay" class="overlay">
+      <h2 id="ovTitle">Dino Jump</h2>
+      <p class="hint">Пробел / клик — прыжок</p>
+      <button class="btn" id="startBtn">Старт</button>
+    </div>
+    <canvas id="canvas" width="840" height="300"></canvas>
+  </div>
+</div>
+<script>
+var canvas=document.getElementById('canvas');
+var ctx=canvas.getContext('2d');
+var scoreEl=document.getElementById('score');
+var bestEl=document.getElementById('best');
+var overlay=document.getElementById('overlay');
+var startBtn=document.getElementById('startBtn');
+
+var state='START', score=0, best=parseInt(localStorage.getItem('dino_hi')||0);
+bestEl.textContent='Рекорд: '+best;
+
+var dy=220, vy=0, onGround=true, frame=0;
+var obs=[], groundY=250;
+
+function start(){
+  dy=220; vy=0; onGround=true; frame=0; score=0; obs=[];
+  scoreEl.textContent='Счёт: 0';
+  state='PLAYING'; overlay.style.display='none';
+}
+
+function endGame(){
+  state='over';
+  if(score>best){ best=score; localStorage.setItem('dino_hi', best); bestEl.textContent='Рекорд: '+best; }
+  document.getElementById('ovTitle').textContent='Врезался! 💥';
+  startBtn.textContent='Ещё раз';
+  overlay.style.display='flex';
+}
+
+function jump(){
+  if(state!=='PLAYING'){ if(state==='START'||state==='over') start(); return; }
+  if(onGround){ vy=-11; onGround=false; }
+}
+
+window.addEventListener('keydown', function(e){ if(e.code==='Space'||e.code==='ArrowUp'){ e.preventDefault(); jump(); } });
+canvas.addEventListener('mousedown', jump);
+startBtn.addEventListener('click', start);
+
+function update(){
+  frame++;
+  score=Math.floor(frame/8);
+  scoreEl.textContent='Счёт: '+score;
+
+  // player physics
+  vy+=0.5; dy+=vy;
+  if(dy>=groundY-22){ dy=groundY-22; vy=0; onGround=true; }
+
+  // obstacles
+  var speed=4+Math.floor(score/200);
+  if(frame%55===0){
+    var h=22+Math.random()*26;
+    obs.push({x:840, w:18, h:h, y:groundY-h});
+  }
+  for(var i=obs.length-1;i>=0;i--){
+    obs[i].x-=speed;
+    if(obs[i].x+obs[i].w<0) obs.splice(i,1);
+  }
+
+  // collision
+  for(var j=0;j<obs.length;j++){
+    var o=obs[j];
+    if(px(50+12)>o.x && px(50+12)<o.x+o.w && dy+22>o.y && dy<o.y+o.h+10){
+      endGame(); return;
+    }
+  }
+  draw();
+}
+
+function px(v){ return v; }
+
+function draw(){
+  ctx.fillStyle='#050811'; ctx.fillRect(0,0,840,300);
+  // ground
+  ctx.fillStyle='rgba(74,222,128,0.15)'; ctx.fillRect(0,groundY,840,50);
+  // obstacles
+  ctx.fillStyle='#f87171'; ctx.shadowColor='#f87171'; ctx.shadowBlur=10;
+  for(var i=0;i<obs.length;i++){ ctx.fillRect(obs[i].x, obs[i].y, obs[i].w, obs[i].h); }
+  ctx.shadowBlur=0;
+  // dino
+  ctx.fillStyle='#4ade80'; ctx.shadowColor='#4ade80'; ctx.shadowBlur=12;
+  ctx.fillRect(50, dy, 24, 22);
+  ctx.fillRect(62, dy-8, 10, 8);
+  ctx.fillRect(50, dy+22, 6, 8);
+  ctx.fillRect(68, dy+22, 6, 8);
+  ctx.shadowBlur=0;
+}
+
+function loop(){ update(); requestAnimationFrame(loop); }
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Click Master - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #090d16; color: #fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { max-width: 850px; width:100%; background: #111827; border-radius: 20px; padding: 25px; border: 1px solid #f59e0b; box-shadow: 0 0 30px rgba(245,158,11,0.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#f59e0b; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(245,158,11,0.1); border-radius:999px; margin-bottom:15px; }
+.game-container { position:relative; width:100%; height:400px; margin:20px 0; background:#050811; border-radius:12px; overflow:hidden; border:2px solid #f59e0b; }
+canvas { width:100%; height:100%; display:block; }
+.hud { position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-weight:800; font-size:1.3rem; color:#f59e0b; pointer-events:none; z-index:10; }
+.overlay { position:absolute; inset:0; background:rgba(9,13,22,0.85); backdrop-filter:blur(5px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; }
+.btn { background: linear-gradient(135deg, #f59e0b, #ef4444); color:#fff; border:none; padding:12px 30px; font-weight:800; font-size:1.1rem; border-radius:999px; cursor:pointer; margin-top:15px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>✨ Click Master</h1>
+  <p>Успей кликнуть по цели до конца таймера!</p>
+  <div class="game-container">
+    <div class="hud">
+      <div id="score">Очки: 0</div>
+      <div id="timer">Время: 10</div>
+    </div>
+    <div id="overlay" class="overlay">
+      <h2 id="ovTitle">Click Master</h2>
+      <p id="ovSub">Кликай по появляющимся целям!</p>
+      <button class="btn" id="startBtn">Старт</button>
+    </div>
+    <canvas id="canvas" width="800" height="400"></canvas>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const timerEl = document.getElementById('timer');
+const overlay = document.getElementById('overlay');
+const ovTitle = document.getElementById('ovTitle');
+const ovSub = document.getElementById('ovSub');
+const startBtn = document.getElementById('startBtn');
+
+let state = 'START';
+let score = 0, timeLeft = 10, lastTick = 0;
+let targets = [], frame = 0;
+
+function spawn() {
+  targets.push({ x: 60 + Math.random()*680, y: 60 + Math.random()*280, r: 24 });
+}
+
+canvas.addEventListener('mousedown', e => {
+  if (state !== 'PLAYING') return;
+  const b = canvas.getBoundingClientRect();
+  const px = (e.clientX - b.left) * (800 / b.width);
+  const py = (e.clientY - b.top) * (400 / b.height);
+  for (let i = targets.length - 1; i >= 0; i--) {
+    let t = targets[i];
+    if (Math.hypot(px - t.x, py - t.y) < t.r) {
+      targets.splice(i, 1);
+      score++;
+      scoreEl.textContent = `Очки: ${score}`;
+      spawn();
+    }
+  }
+});
+
+startBtn.addEventListener('click', start);
+overlay.addEventListener('click', start);
+
+function start() { score = 0; timeLeft = 10; targets = []; frame = 0; scoreEl.textContent='Очки: 0'; timerEl.textContent = 'Время: 10'; spawn(); state='PLAYING'; overlay.style.display='none'; }
+
+function update() {
+  if (state !== 'PLAYING') return;
+  frame++;
+  if (frame % 60 === 0) {
+    timeLeft--;
+    timerEl.textContent = `Время: ${timeLeft}`;
+    if (timeLeft <= 0) { gameOver(); }
+  }
+  if (frame % 20 === 0 && targets.length < 3) spawn();
+}
+
+function gameOver() {
+  state = 'GAMEOVER';
+  ovTitle.textContent = 'Время вышло! ⏰'; ovSub.textContent = `Очки: ${score}`;
+  startBtn.textContent = 'Ещё раз'; overlay.style.display = 'flex';
+}
+
+function draw() {
+  ctx.fillStyle = '#050811'; ctx.fillRect(0,0,800,400);
+  targets.forEach(t => {
+    ctx.shadowColor = '#f59e0b'; ctx.shadowBlur = 18;
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#050811'; ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('💥', t.x, t.y);
+  });
+}
+
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+loop();
+</script>
+</body>
+</html>

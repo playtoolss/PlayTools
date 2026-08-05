@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Cards - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif; background:#090d16; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { width:100%; max-width:720px; background:#111827; border-radius:20px; padding:25px; border:1px solid #a855f7; box-shadow:0 0 30px rgba(168,85,247,.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#a855f7; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(168,85,247,.1); border-radius:999px; margin-bottom:15px; }
+.hud { display:flex; justify-content:space-between; font-weight:800; font-size:1.2rem; color:#a855f7; margin:16px 0; }
+.cards { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.card3d { aspect-ratio:3/4; background:#0f172a; border:2px solid #a855f7; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:2rem; transition:transform .2s; user-select:none; }
+.card3d.flipped { background:#7c3aed; }
+.card3d:hover { transform:translateY(-3px); }
+.overlay { position:absolute; inset:0; background:rgba(9,13,22,.85); backdrop-filter:blur(5px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; gap:8px; border-radius:16px; padding:30px; margin-top:16px; }
+.btn { background:linear-gradient(135deg,#a855f7,#7c6cff); color:#fff; border:none; padding:12px 32px; font-weight:800; font-size:1.1rem; border-radius:999px; cursor:pointer; }
+.wrap { position:relative; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>🎴 Memory Cards</h1>
+  <p>Найди все пары. Мини-игра на память!</p>
+  <div class="hud">
+    <div>Попыток: <b id="moves">0</b></div>
+    <div>Пары: <b id="pairs">0/8</b></div>
+  </div>
+  <div class="wrap">
+    <div class="cards" id="cards"></div>
+    <div id="overlay" class="overlay" style="display:none;position:static;margin-top:0;">
+      <h2 id="ovTitle">🎉 Победа!</h2>
+      <p id="ovSub" class="hint" style="color:#94a3b8;"></p>
+      <button class="btn" id="againBtn">Сыграть ещё</button>
+    </div>
+  </div>
+</div>
+<script>
+var emojis=['🦄','🚀','🤖','👾','💎','🌈','🍕','🎯'];
+var cards=[], flipped=[], locked=false, moves=0, foundPairs=0;
+var movesEl=document.getElementById('moves');
+var pairsEl=document.getElementById('pairs');
+var gridEl=document.getElementById('cards');
+var overlayEl=document.getElementById('overlay');
+var againBtn=document.getElementById('againBtn');
+
+function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+
+function newGame(){
+  cards=[]; flipped=[]; locked=false; moves=0; foundPairs=0;
+  var deck=[];
+  emojis.forEach(function(e){ deck.push(e); deck.push(e); });
+  deck=shuffle(deck);
+  cards=deck.map(function(em,idx){ return {em:em, id:idx, flip:false, match:false}; });
+  movesEl.textContent='0';
+  pairsEl.textContent='0/8';
+  overlayEl.style.display='none';
+  renderCards();
+}
+
+function renderCards(){
+  gridEl.innerHTML='';
+  cards.forEach(function(c,i){
+    var d=document.createElement('div');
+    d.className='card3d'+(c.flip||c.match?' flipped':'');
+    d.textContent=(c.flip||c.match)?c.em:'?';
+    d.onclick=function(){ clickCard(i,d); };
+    gridEl.appendChild(d);
+  });
+}
+
+function clickCard(idx,el){
+  if(locked||cards[idx].flip||cards[idx].match) return;
+  cards[idx].flip=true; flipped.push(idx);
+  el.className='card3d flipped'; el.textContent=cards[idx].em;
+  if(flipped.length===2){
+    moves++; movesEl.textContent=moves;
+    locked=true;
+    var a=flipped[0], b=flipped[1];
+    if(cards[a].em===cards[b].em){
+      cards[a].match=cards[b].match=true; flipped=[]; locked=false;
+      foundPairs++; pairsEl.textContent=foundPairs+'/8';
+      setTimeout(function(){
+        cards[a].flip=cards[b].flip=false;
+        renderCards();
+        if(foundPairs===8) win();
+      },300);
+    } else {
+      setTimeout(function(){
+        cards[a].flip=cards[b].flip=false; flipped=[]; locked=false; renderCards();
+      },700);
+    }
+  }
+}
+
+function win(){
+  overlayEl.style.display='flex';
+  document.getElementById('ovSub').textContent='Ты справился за '+moves+' ходов!';
+}
+
+againBtn.addEventListener('click', newGame);
+newGame();
+</script>
+</body>
+</html>

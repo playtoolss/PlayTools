@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Галерея Макара — PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+:root { --bg:#090d16; --panel:#111827; --panel-2:#0f172a; --border:#1e293b; --gray-500:#94a3b8; --accent:#7c6cff; --accent-2:#38bdf8; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:#fff; }
+header { background:rgba(17,24,39,.85); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; }
+.header-inner { max-width:1200px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.logo-area { display:flex; align-items:center; gap:10px; text-decoration:none; color:#fff; cursor:pointer; }
+.logo-area .logo-img { width:38px; height:38px; border-radius:10px; object-fit:cover; }
+.logo-text { font-weight:800; font-size:1.2rem; }
+nav { display:flex; gap:10px; flex-wrap:wrap; }
+.nav-btn, .back-btn { display:inline-flex; align-items:center; padding:9px 18px; border-radius:999px; font-weight:700; font-size:0.9rem; text-decoration:none; color:#fff; background:rgba(124,108,255,.12); border:1px solid rgba(124,108,255,.3); transition:all .2s; cursor:pointer; }
+.nav-btn:hover, .back-btn:hover { background:rgba(124,108,255,.25); transform:translateY(-2px); }
+.page { max-width:1200px; margin:0 auto; padding:40px 24px 80px; }
+.hero { text-align:center; padding:20px 0 10px; }
+.hero h1 { font-size:2.6rem; font-weight:800; background:linear-gradient(135deg,#7c6cff,#38bdf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:10px; }
+.hero p { color:var(--gray-500); max-width:640px; margin:0 auto; font-size:1.05rem; }
+.author-badge { display:inline-flex; align-items:center; gap:12px; margin-top:18px; padding:10px 22px; background:var(--panel); border:1px solid var(--border); border-radius:999px; }
+.author-badge img { width:42px; height:42px; border-radius:50%; object-fit:cover; border:2px solid var(--accent); }
+.gallery { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:18px; margin-top:36px; }
+.g-item { position:relative; border-radius:16px; overflow:hidden; border:1px solid var(--border); cursor:pointer; background:var(--panel); transition:transform .25s, box-shadow .25s; }
+.g-item:hover { transform:translateY(-6px); box-shadow:0 16px 34px rgba(10,15,31,.6); }
+.g-item img { width:100%; aspect-ratio:1/1; object-fit:cover; display:block; transition:transform .4s; }
+.g-item:hover img { transform:scale(1.06); }
+.g-item .g-name { position:absolute; bottom:0; left:0; right:0; padding:22px 12px 10px; font-size:0.78rem; color:rgba(255,255,255,.85); background:linear-gradient(transparent, rgba(9,13,22,.9)); }
+.lightbox { position:fixed; inset:0; background:rgba(9,13,22,.92); z-index:200; display:none; align-items:center; justify-content:center; padding:30px; }
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw; max-height:85vh; border-radius:12px; border:1px solid var(--border); }
+.lightbox .close { position:absolute; top:24px; right:32px; font-size:2rem; color:#fff; cursor:pointer; background:rgba(255,255,255,.1); width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition:transform .2s font-size:2rem; }
+.lightbox .close:hover { transform:scale(1.1); }
+footer { border-top:1px solid var(--border); padding:26px; text-align:center; color:var(--gray-500); font-size:0.9rem; }
+@media (max-width:640px) { .hero h1 { font-size:1.9rem; } .gallery { grid-template-columns:1fr 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <a class="logo-area" href="index.html">
+      <img class="logo-img" src="assets/f.png" alt="Автор" onerror="this.style.display='none';">
+      <span class="logo-text">PlayTools</span>
+    </a>
+    <nav>
+      <a class="nav-btn" href="index.html">🏠 Главная</a>
+      <a class="nav-btn" href="assets.html">🖼️ Галерея</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+  <div class="hero">
+    <h1>🖼️ Галерея автора</h1>
+    <p>Здесь собраны лучшие работы и арты от нашего автора. Наслаждайтесь и забирайте в коллекцию!</p>
+    <div class="author-badge">
+      <img src="assets/f.png" alt="Макар" onerror="this.src='assets/f.jpg';">
+      <span><b>Макар</b> — Улыбок тебе, дед Макар!</span>
+    </div>
+  </div>
+
+  <div class="gallery" id="gallery"></div>
+</main>
+
+<div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLightbox()">
+  <span class="close" onclick="closeLightbox()">✕</span>
+  <img id="lbImg" src="" alt="Просмотр">
+</div>
+
+<footer>
+  <p>© 2026 PlayTools · Галерея автора. Все права защищены.</p>
+</footer>
+
+<script>
+var IMAGES = [
+  'assets/a.png',
+  'assets/b.png',
+  'assets/D.png',
+  'assets/dgfdsg.png',
+  'assets/edgdsfg.png',
+  'assets/f.png',
+  'assets/fbfb.png',
+  'assets/g.png',
+  'assets/h.png',
+  'assets/hhn.png'
+];
+
+var gallery = document.getElementById('gallery');
+IMAGES.forEach(function(src, i) {
+  var item = document.createElement('div');
+  item.className = 'g-item';
+  var name = src.split('/').pop();
+  item.innerHTML = '<img src="' + src + '" alt="Арт ' + (i + 1) + '" onerror="this.closest(\'.g-item\').style.display=\'none\';" loading="lazy">' +
+    '<div class="g-name">#' + (i + 1) + ' · ' + name + '</div>';
+  item.addEventListener('click', function() { openLightbox(src); });
+  gallery.appendChild(item);
+});
+
+var lightbox = document.getElementById('lightbox');
+var lbImg = document.getElementById('lbImg');
+
+function openLightbox(src) {
+  lbImg.src = src;
+  lightbox.classList.add('open');
+}
+function closeLightbox() {
+  lightbox.classList.remove('open');
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeLightbox(); });
+</script>
+</body>
+</html>

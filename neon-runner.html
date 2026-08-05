@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neon Runner - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif; background:#090d16; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { width:100%; max-width:850px; background:#111827; border-radius:20px; padding:25px; border:1px solid #22d3ee; box-shadow:0 0 30px rgba(34,211,238,.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#22d3ee; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(34,211,238,.1); border-radius:999px; margin-bottom:15px; }
+.game-wrap { position:relative; width:100%; margin:18px 0; background:#050811; border-radius:12px; overflow:hidden; border:2px solid #22d3ee; }
+canvas { width:100%; height:100%; display:block; }
+.hud { position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-weight:800; font-size:1.3rem; color:#22d3ee; pointer-events:none; z-index:10; text-shadow:0 0 10px rgba(34,211,238,.5); }
+.overlay { position:absolute; inset:0; background:rgba(9,13,22,.85); backdrop-filter:blur(5px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; gap:8px; }
+.btn { background:linear-gradient(135deg,#22d3ee,#7c6cff); color:#fff; border:none; padding:12px 32px; font-weight:800; font-size:1.1rem; border-radius:999px; cursor:pointer; }
+p.hint { color:#94a3b8; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>🏃 Neon Runner</h1>
+  <p>Прыгай по платформам, набирай высоту и не упади!</p>
+  <div class="game-wrap" style="height:420px;">
+    <div class="hud">
+      <div id="score">Счёт: 0</div>
+      <div id="best">Рекорд: 0</div>
+    </div>
+    <div id="overlay" class="overlay">
+      <h2 id="ovTitle">Neon Runner</h2>
+      <p class="hint">Пробел / клик — прыжок. Тройной прыжок выше!</p>
+      <button class="btn" id="startBtn">Старт</button>
+    </div>
+    <canvas id="canvas" width="840" height="420"></canvas>
+  </div>
+</div>
+<script>
+var canvas=document.getElementById('canvas');
+var ctx=canvas.getContext('2d');
+var scoreEl=document.getElementById('score');
+var bestEl=document.getElementById('best');
+var overlay=document.getElementById('overlay');
+var startBtn=document.getElementById('startBtn');
+
+var state='START', score=0, best=parseInt(localStorage.getItem('neon_runner_hi')||0);
+bestEl.textContent='Рекорд: '+best;
+
+var px=120, py=300, vy=0, jumps=0, frame=0;
+var plats=[], groundY=390;
+
+function initPlats(){
+  plats=[];
+  for(var i=0;i<7;i++) plats.push({x:40+i*110, w:70, y:350});
+  groundY=390;
+}
+initPlats();
+
+function reset(){ px=120; py=300; vy=0; jumps=0; frame=0; score=0; scoreEl.textContent='Счёт: 0'; }
+
+function start(){ reset(); state='PLAYING'; overlay.style.display='none'; }
+
+function endGame(msg){
+  state='over';
+  if(score>best){ best=score; localStorage.setItem('neon_runner_hi', best); bestEl.textContent='Рекорд: '+best; }
+  document.getElementById('ovTitle').textContent=msg;
+  document.getElementById('ovTitle').textContent='Падение! 💥';
+  startBtn.textContent='Ещё раз';
+  overlay.style.display='flex';
+}
+
+function jump(){
+  if(state!=='playing'){ if(state==='START'||state==='over') start(); return; }
+  if(jumps<3){
+    jumps++;
+    vy = jumps===1 ? -9 : (jumps===2 ? -7.5 : -6.5);
+  }
+  score++;
+  scoreEl.textContent='Счёт: '+score;
+}
+
+window.addEventListener('keydown', function(e){ if(e.code==='Space'){ e.preventDefault(); jump(); } });
+canvas.addEventListener('mousedown', jump);
+startBtn.addEventListener('click', start);
+
+function update(){
+  frame++;
+  py+=vy; vy+=0.4;
+  // collisions
+  var landed=false;
+  for(var i=0;i<plats.length;i++){
+    var p=plats[i];
+    if(vy>=0 && py>=p.y && py<=p.y+16 && px+16>=p.x && px<=p.x+p.w){
+      py=p.y; vy=0; jumps=0; landed=true; break;
+    }
+  }
+  if(!landed && py>420){ endGame(); return; }
+  // move plats
+  var speed=2+Math.floor(score/100);
+  for(var j=0;j<plats.length;j++){ plats[j].x-=speed; }
+  plats=plats.filter(function(p){ return p.x+p.w>-20; });
+  if(plats.length<6){
+    var last=plats[plats.length-1]||{x:600,y:340};
+    var ny=340;
+    if(score>80) ny=300+Math.floor(Math.random()*90);
+    plats.push({x:last.x+150+Math.random()*60, y:ny, w:70});
+  }
+  draw();
+}
+
+function rand(n){ return Math.floor(Math.random()*n); }
+
+function draw(){
+  ctx.fillStyle='#050811'; ctx.fillRect(0,0,840,420);
+  // ground
+  ctx.fillStyle='rgba(34,211,238,0.12)'; ctx.fillRect(0,groundY,840,420-groundY);
+  // platforms
+  ctx.shadowColor='#22d3ee'; ctx.shadowBlur=12; ctx.fillStyle='#22d3ee';
+  for(var i=0;i<plats.length;i++){ ctx.fillRect(plats[i].x,plats[i].y,plats[i].w,12); }
+  // player ball
+  ctx.shadowColor='#7c6cff'; ctx.shadowBlur=16; ctx.fillStyle='#7c6cff';
+  ctx.beginPath(); ctx.arc(px,py,14,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+}
+
+function loop(){ update(); requestAnimationFrame(loop); }
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

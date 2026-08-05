@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neon Dodge - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #090d16; color: #fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { max-width: 850px; width:100%; background: #111827; border-radius: 20px; padding: 25px; border: 1px solid #38bdf8; box-shadow: 0 0 30px rgba(56,189,248,0.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#38bdf8; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(56,189,248,0.1); border-radius:999px; margin-bottom:15px; }
+.game-container { position:relative; width:100%; height:400px; margin:20px 0; background:#050811; border-radius:12px; overflow:hidden; border:2px solid #38bdf8; }
+canvas { width:100%; height:100%; display:block; }
+.hud { position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-weight:800; font-size:1.3rem; color:#38bdf8; pointer-events:none; z-index:10; }
+.overlay { position:absolute; inset:0; background:rgba(9,13,22,0.85); backdrop-filter:blur(5px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; }
+.btn { background: linear-gradient(135deg, #38bdf8, #7c6cff); color:#fff; border:none; padding:12px 30px; font-weight:800; font-size:1.1rem; border-radius:999px; cursor:pointer; margin-top:15px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>⚡ Neon Dodge</h1>
+  <p>Уворачивайся от врагов мышкой! (двигай курсором по полю)</p>
+  <div class="game-container">
+    <div class="hud">
+      <div id="score">Секунд: 0</div>
+      <div id="highScore">Рекорд: 0</div>
+    </div>
+    <div id="overlay" class="overlay">
+      <h2 id="ovTitle">Neon Dodge</h2>
+      <p id="ovSub">Двигай мышью, чтобы уворачиваться!</p>
+      <button class="btn" id="startBtn">Старт</button>
+    </div>
+    <canvas id="canvas" width="800" height="400"></canvas>
+  </div>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const highScoreEl = document.getElementById('highScore');
+const overlay = document.getElementById('overlay');
+const ovTitle = document.getElementById('ovTitle');
+const ovSub = document.getElementById('ovSub');
+const startBtn = document.getElementById('startBtn');
+const rect = canvas.getBoundingClientRect;
+
+let state = 'START';
+let score = 0, highScore = localStorage.getItem('dodge_hi') || 0;
+highScoreEl.textContent = `Рекорд: ${highScore}`;
+let player = { x: 400, y: 200, r: 18 };
+let enemies = [], last = 0, frame = 0;
+
+canvas.addEventListener('mousemove', e => {
+  const b = canvas.getBoundingClientRect();
+  player.x = (e.clientX - b.left) * (800 / b.width);
+  player.y = (e.clientY - b.top) * (400 / b.height);
+});
+
+startBtn.addEventListener('click', start);
+overlay.addEventListener('click', start);
+
+function start() { frame = 0; enemies = []; score = 0; player.x=400; player.y=200; state='PLAYING'; overlay.style.display='none'; }
+
+function gameOver() {
+  state = 'GAMEOVER';
+  if (score > highScore) { highScore = score; localStorage.setItem('dodge_hi', highScore); highScoreEl.textContent = `Рекорд: ${highScore}`; }
+  ovTitle.textContent = 'Врезался! 💥'; ovSub.textContent = `Ты продержался: ${score} сек`;
+  startBtn.textContent = 'Ещё раз'; overlay.style.display = 'flex';
+}
+
+function update() {
+  if (state !== 'PLAYING') return;
+  frame++;
+  score = Math.floor(frame / 60);
+  scoreEl.textContent = `Секунд: ${score}`;
+
+  if (frame % 45 === 0) {
+    enemies.push({ x: 20 + Math.random()*780, y: 20 + Math.random()*380, r: 14 + Math.random()*14, vx: (Math.random()-0.5)*3.5, vy: (Math.random()-0.5)*3.5 });
+  }
+
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    let e = enemies[i];
+    e.x += e.vx; e.y += e.vy;
+    if (e.x < 10 || e.x > 790) e.vx *= -1;
+    if (e.y < 10 || e.y > 390) e.vy *= -1;
+    let dx = player.x - e.x, dy = player.y - e.y;
+    if (Math.hypot(dx, dy) < player.r + e.r - 4) { gameOver(); }
+  }
+}
+
+function draw() {
+  ctx.fillStyle = '#050811'; ctx.fillRect(0,0,800,400);
+  ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 16;
+  ctx.fillStyle = '#7c6cff';
+  ctx.beginPath(); ctx.arc(player.x, player.y, player.r, 0, Math.PI*2); ctx.fill();
+  ctx.shadowColor = '#ff0055'; ctx.shadowBlur = 12;
+  ctx.fillStyle = '#ff0055';
+  enemies.forEach(e => { ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI*2); ctx.fill(); });
+  ctx.shadowBlur = 0;
+}
+
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+loop();
+</script>
+</body>
+</html>

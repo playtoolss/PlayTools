@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Rush - PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #090d16; color: #fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { max-width: 600px; width:100%; background: #111827; border-radius: 20px; padding: 25px; border: 1px solid #f59e0b; box-shadow: 0 0 30px rgba(245,158,11,0.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#f59e0b; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(245,158,11,0.1); border-radius:999px; margin-bottom:15px; }
+.quiz-wrap { margin: 25px 0 10px; }
+#question { font-size: 3.2rem; font-weight: 800; margin: 20px 0; min-height: 70px; }
+.timer-bar { height: 8px; background: rgba(255,255,255,0.1); border-radius: 999px; overflow: hidden; margin-bottom: 30px; }
+#timer-fill { height: 100%; background: linear-gradient(90deg, #f59e0b, #f43f5e); transition: width .1s linear; }
+.answers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.answer { padding: 18px; font-size: 1.6rem; font-weight: 800; background: #0f172a; border: 2px solid #1e293b; border-radius: 14px; cursor: pointer; transition: all .15s ease; color:#fff; }
+.answer:hover { border-color: #f59e0b; transform: translateY(-3px); }
+.answer.correct { background: #22c55e; border-color: #22c55e; }
+.answer.wrong { background: #ef4444; border-color: #ef4444; }
+.hud { display:flex; justify-content:space-between; font-weight:700; color:#f59e0b; font-size:1.1rem; }
+.overlay { background:rgba(9,13,22,0.92); border-radius:16px; padding:30px; margin-top:25px; }
+.btn { background: linear-gradient(135deg, #f59e0b, #f43f5e); color:#fff; border:none; padding:12px 30px; font-weight:800; font-size:1.1rem; border-radius:999px; cursor:pointer; margin-top:20px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>🧮 Math Rush</h1>
+  <p>Быстрые примеры. Успей ответить за 10 секунд!</p>
+  <div class="hud">
+    <div>Счёт: <b id="score">0</b></div>
+    <div>Рекорд: <b id="highScore">0</b></div>
+  </div>
+  <div class="quiz-wrap">
+    <div id="question"></div>
+    <div class="timer-bar"><div id="timer-fill" style="width:100%"></div></div>
+    <div class="answers" id="answers"></div>
+  </div>
+  <div id="result" class="overlay" style="display:none;">
+    <h2>🏁 Раунд окончен!</h2>
+    <p id="resultText"></p>
+    <button class="btn" id="againBtn">Ещё раз</button>
+  </div>
+</div>
+<script>
+const qEl = document.getElementById('question');
+const answersEl = document.getElementById('answers');
+const scoreEl = document.getElementById('score');
+const highScoreEl = document.getElementById('highScore');
+const timerFill = document.getElementById('timer-fill');
+const resultEl = document.getElementById('result');
+const resultText = document.getElementById('resultText');
+
+let score = 0, highScore = localStorage.getItem('math_hi') || 0;
+highScoreEl.textContent = highScore;
+let timeLeft = 10, active = false;
+let curAnswer = -1;
+let interval = null;
+
+function genQuestion() {
+  const a = Math.floor(Math.random()*12)+1;
+  const b = Math.floor(Math.random()*12)+1;
+  curAnswer = a*b;
+  qEl.textContent = a + ' × ' + b + ' = ?';
+  const opts = new Set([curAnswer]);
+  while (opts.size < 4) {
+    const d = curAnswer + Math.floor(Math.random()*17-8);
+    if (d > 0 && d !== curAnswer) opts.add(d);
+  }
+  const arr = Array.from(opts).sort(() => Math.random()-0.5);
+  answersEl.innerHTML = '';
+  arr.forEach(v => {
+    const btn = document.createElement('div');
+    btn.className = 'answer';
+    btn.textContent = v;
+    btn.onclick = () => pick(v, btn);
+    answersEl.appendChild(btn);
+  });
+}
+
+function pick(v, btn) {
+  if (!active) return;
+  if (v === curAnswer) {
+    btn.classList.add('correct');
+    score++;
+    scoreEl.textContent = score;
+    genQuestion();
+    timeLeft = 10;
+  } else {
+    btn.classList.add('wrong');
+    endGame();
+  }
+}
+
+function endGame() {
+  active = false;
+  clearInterval(interval);
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('math_hi', highScore);
+    highScoreEl.textContent = highScore;
+  }
+  resultText.textContent = `Твой счёт: ${score}`;
+  resultEl.style.display = 'block';
+}
+
+document.getElementById('againBtn').onclick = start;
+
+function start() {
+  score = 0; timeLeft = 10; active = true;
+  scoreEl.textContent = '0';
+  resultEl.style.display = 'none';
+  genQuestion();
+  clearInterval(interval);
+  interval = setInterval(() => {
+    timeLeft -= 0.1;
+    timerFill.style.width = (timeLeft/10*100) + '%';
+    if (timeLeft <= 0) endGame();
+  }, 100);
+}
+
+start();
+</script>
+</body>
+</html>

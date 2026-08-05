@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rock Paper Scissors — PlayTools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif; background:#090d16; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.container { width:100%; max-width:620px; background:#111827; border-radius:20px; padding:25px; border:1px solid #f43f5e; box-shadow:0 0 30px rgba(244,63,94,.2); text-align:center; }
+.back-btn { display:inline-flex; align-items:center; color:#f43f5e; font-weight:700; text-decoration:none; padding:8px 16px; background:rgba(244,63,94,.1); border-radius:999px; margin-bottom:15px; }
+.stage { display:flex; justify-content:space-around; align-items:center; margin:22px 0 10px; }
+.choice-big { flex:1; text-align:center; }
+.choice-big .ico { font-size:4rem; display:block; margin-bottom:6px; }
+.choice-big .lbl { color:#94a3b8; font-size:0.85rem; }
+.vs { font-size:1.5rem; color:#f43f5e; font-weight:800; }
+.verdict { font-size:1.3rem; font-weight:800; color:#fbbf24; margin:16px 0; min-height:30px; }
+.buttons { display:flex; justify-content:center; gap:14px; }
+.opt { width:90px; height:90px; border-radius:20px; background:#0f172a; border:2px solid #334155; cursor:pointer; font-size:2.4rem; transition:all .15s; }
+.opt:hover { border-color:#f43f5e; transform:translateY(-4px); }
+.stats { display:flex; justify-content:space-around; color:#94a3b8; margin-top:20px; font-size:0.9rem; }
+.stats b { color:#fff; display:block; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Назад на главную</a>
+  <h1>✊ Камень Ножницы Бумага</h1>
+  <div class="stage">
+    <div class="choice-big"><span class="choice-big" id="youBig">❓</span><div class="lbl">Ты</div></div>
+    <div class="vs">VS</div>
+    <div class="choice-big"><span class="choice-big" id="botBig">❓</span><div class="lbl">Бот</div></div>
+  </div>
+  <div class="verdict" id="verdict">Выбери!</div>
+  <div class="buttons">
+    <button class="opt" onclick="play('🗿')">🗿</button>
+    <button class="opt" onclick="play('✂️')">✂️</button>
+    <button class="opt" onclick="play('📄')">📄</button>
+  </div>
+  <div class="stats">
+    <div>Победы <b id="wins">0</b></div>
+    <div>Ничьи <b id="draws">0</b></div>
+    <div>Поражения <b id="losses">0</b></div>
+  </div>
+</div>
+<script>
+var moveLbl={ '🗿':'Камень', '✂️':'Ножницы', '📄':'Бумага' };
+var icons=['🗿','✂️','📄'];
+var wins=0, draws=0, losses=0;
+var ratio={'🗿':'✂️','✂️':'📄','📄':'🗿'};
+
+function play(mine){
+  var bot=icons[Math.floor(Math.random()*3)];
+  document.getElementById('youBig').src='';
+  document.getElementById('youBig').textContent=mine;
+  document.getElementById('botBig').textContent=bot;
+  var verdict=document.getElementById('verdict');
+  if(mine===bot){ draws++; verdict.textContent='🤝 Ничья!'; verdict.style.color='#94a3b8'; }
+  else if(ratio[mine]===bot){ wins++; verdict.textContent='🎉 Победа! '+youLbl(mine)+' бьёт '+youLbl(bot); verdict.style.color='#4ade80'; }
+  else { losses++; verdict.textContent='😅 Бот победил: '+youLbl(bot)+' бьёт '+youLbl(mine); verdict.style.color='#f43f5e'; }
+  document.getElementById('wins').textContent=wins;
+  document.getElementById('draws').textContent=draws;
+  document.getElementById('losses').textContent=losses;
+}
+function youLbl(i){ return youLbl2(i); }
+function youLbl2(i){ return { '🗿':'Камень', '✂️':'Ножницы', '📄':'Бумага' }[i]; }
+</script>
+</body>
+</html>
